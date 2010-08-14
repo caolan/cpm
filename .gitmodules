@@ -4,3 +4,6 @@
 [submodule "deps/underscore"]
 	path = deps/underscore
 	url = git://github.com/documentcloud/underscore.git
+[submodule "deps/async"]
+	path = deps/async
+	url = git://github.com/caolan/async.git
