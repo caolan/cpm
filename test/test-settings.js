@@ -71,7 +71,7 @@ exports['loadSettings without local .cpmrc'] = function (test) {
     var _exists = path.exists;
     path.exists = function (p, callback) {
         test.ok(true, 'path.exists called');
-        if(p == 'projectdir/.cpmrc') process.nextTick(function () {
+        if (p == 'projectdir/.cpmrc') process.nextTick(function () {
             callback(false);
         });
         else process.nextTick(function () {
