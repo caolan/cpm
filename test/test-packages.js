@@ -5,6 +5,8 @@ exports['loadPackage'] = function (test) {
     var file = __dirname + '/fixtures/testpackage';
 
     packages.loadPackage(file, function (err, pkg, _design, attachments) {
+        if(err) throw err;
+
         test.same(pkg, {
             name: 'testpackage',
             dependencies: [
@@ -13,10 +15,15 @@ exports['loadPackage'] = function (test) {
             ],
             directories: {
                 attachments: ["static"],
-                properties: ["views", "validate_doc_update.js"]
+                properties: ["validate_doc_update.js"]
             }
         });
-        test.same(_design, {'package': pkg});
+        test.same(_design, {
+            'package': pkg,
+            'validate_doc_update': 'function (newDoc, oldDoc, userCtx) {\n' +
+                '    // some validation function\n' +
+            '};\n'
+        });
         test.same(attachments, []);
         test.done();
     });

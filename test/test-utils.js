@@ -23,15 +23,6 @@ exports['propertyPath'] = function (test) {
     test.done();
 };
 
-exports['propertyName'] = function (test) {
-    test.equals(utils.propertyName('/path/to/file.js'), 'file');
-    test.equals(utils.propertyName('/path/to/file.xyz'), 'file.xyz');
-    test.equals(utils.propertyName('module.js'), 'module');
-    test.equals(utils.propertyName('blah/blah/module.js'), 'module');
-    test.equals(utils.propertyName('blah/blah/module.xyz.js'), 'module.xyz');
-    test.done();
-};
-
 exports['descendants'] = function (test) {
     var dir = __dirname + '/fixtures/descendants_test';
     utils.descendants(dir, function (err, files) {
@@ -65,4 +56,26 @@ exports['readJSON'] = function (test) {
         test.ok(err, 'return JSON parsing errors');
         test.done();
     });
+};
+
+exports['relpath'] = function (test) {
+    var dir = '/some/test/path';
+    test.equals(
+        utils.relpath('/some/test/path/some/file.ext', dir),
+        'some/file.ext'
+    );
+    test.equals(
+        utils.relpath('/some/test/file.ext', dir),
+        '../file.ext'
+    );
+    test.equals(
+        utils.relpath('some/test/file.ext', dir),
+        'some/test/file.ext'
+    );
+    test.equals(
+        utils.relpath('/some/dir/../test/path/file.ext', dir),
+        'file.ext'
+    );
+    test.equals(utils.relpath('file.ext', dir), 'file.ext');
+    test.done();
 };
