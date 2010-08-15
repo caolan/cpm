@@ -22,3 +22,28 @@ exports['propertyPath'] = function (test) {
     });
     test.done();
 };
+
+exports['propertyName'] = function (test) {
+    test.equals(utils.propertyName('/path/to/file.js'), 'file');
+    test.equals(utils.propertyName('/path/to/file.xyz'), 'file.xyz');
+    test.equals(utils.propertyName('module.js'), 'module');
+    test.equals(utils.propertyName('blah/blah/module.js'), 'module');
+    test.equals(utils.propertyName('blah/blah/module.xyz.js'), 'module.xyz');
+    test.done();
+};
+
+exports['descendants'] = function (test) {
+    var dir = __dirname + '/fixtures/descendants_test';
+    utils.descendants(dir, function (err, files) {
+        if(err) throw err;
+        test.same(files.sort(), [
+            dir + '/file1',
+            dir + '/file2',
+            dir + '/folder1/file1.1',
+            dir + '/folder2/folder2.1/file2.1.1',
+            dir + '/folder2/folder2.2/file2.2.1',
+            dir + '/folder2/folder2.2/file2.2.2'
+        ].sort());
+        test.done();
+    });
+};
