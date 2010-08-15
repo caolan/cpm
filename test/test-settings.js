@@ -1,25 +1,7 @@
-var settings = require('settings'),
+var settings = require('../lib/settings'),
+    utils = require('../lib/utils'),
     path = require('path');
 
-
-exports['readSettingsFile'] = function (test) {
-    test.expect(2);
-    var p = __dirname + '/fixtures/cpmrc';
-    settings.readSettingsFile(p, function (err, settings) {
-        test.ok(!err);
-        test.same(settings, {one:1,two:2});
-        test.done();
-    });
-};
-
-exports['readSettingsFile'] = function (test) {
-    test.expect(1);
-    var p = __dirname + '/fixtures/cpmrc_invalid';
-    settings.readSettingsFile(p, function (err, settings) {
-        test.ok(err, 'return JSON parsing errors');
-        test.done();
-    });
-};
 
 exports['loadSettings with local .cpmrc'] = function (test) {
     test.expect(6);
@@ -34,13 +16,13 @@ exports['loadSettings with local .cpmrc'] = function (test) {
         });
     };
 
-    var _readSettingsFile = settings.readSettingsFile;
-    settings.readSettingsFile = function (p, callback) {
+    var _readJSON = utils.readJSON;
+    utils.readJSON = function (p, callback) {
         test.equals(p, '/home/user/.cpmrc');
         process.nextTick(function () {
             callback(null, {a:1,b:2});
         });
-        settings.readSettingsFile = function (p, callback) {
+        utils.readJSON = function (p, callback) {
             test.equals(p, 'projectdir/.cpmrc');
             process.nextTick(function () {
                 callback(null, {b:3,c:4});
@@ -56,7 +38,7 @@ exports['loadSettings with local .cpmrc'] = function (test) {
     settings.loadSettings('projectdir', function (err, s) {
         test.same(s, {a:1,b:3,c:4});
         process.env['HOME'] = _home;
-        settings.readSettingsFile = _readSettingsFile;
+        utils.readJSON = _readJSON;
         settings.validate = _validate;
         path.exists = _exists;
         test.done();
@@ -79,13 +61,13 @@ exports['loadSettings without local .cpmrc'] = function (test) {
         });
     };
 
-    var _readSettingsFile = settings.readSettingsFile;
-    settings.readSettingsFile = function (p, callback) {
+    var _readJSON = utils.readJSON;
+    utils.readJSON = function (p, callback) {
         test.equals(p, '/home/user/.cpmrc');
         process.nextTick(function () {
             callback(null, {a:1,b:2});
         });
-        settings.readSettingsFile = function (p, callback) {
+        utils.readJSON = function (p, callback) {
             test.ok(false, 'should not be called for local .cpmrc');
             process.nextTick(function () {
                 callback(null, {b:3,c:4});
@@ -101,14 +83,14 @@ exports['loadSettings without local .cpmrc'] = function (test) {
     settings.loadSettings('projectdir', function (err, s) {
         test.same(s, {a:1,b:2});
         process.env['HOME'] = _home;
-        settings.readSettingsFile = _readSettingsFile;
+        utils.readJSON = _readJSON;
         settings.validate = _validate;
         path.exists = _exists;
         test.done();
     });
 };
 
-exports['loadSettings return errors from readSettingsFile'] = function (test) {
+exports['loadSettings return errors from readJSON'] = function (test) {
     test.expect(3);
     var _home = process.env['HOME'];
     process.env['HOME'] = '/home/user';
@@ -121,8 +103,8 @@ exports['loadSettings return errors from readSettingsFile'] = function (test) {
         });
     };
 
-    var _readSettingsFile = settings.readSettingsFile;
-    settings.readSettingsFile = function (p, callback) {
+    var _readJSON = utils.readJSON;
+    utils.readJSON = function (p, callback) {
         test.equals(p, '/home/user/.cpmrc');
         process.nextTick(function () {
             callback('error', null);
@@ -137,7 +119,7 @@ exports['loadSettings return errors from readSettingsFile'] = function (test) {
     settings.loadSettings('projectdir', function (err, s) {
         test.equals(err, 'error');
         process.env['HOME'] = _home;
-        settings.readSettingsFile = _readSettingsFile;
+        utils.readJSON = _readJSON;
         settings.validate = _validate;
         path.exists = _exists;
         test.done();
@@ -157,8 +139,8 @@ exports['loadSettings return errors from validate'] = function (test) {
         });
     };
 
-    var _readSettingsFile = settings.readSettingsFile;
-    settings.readSettingsFile = function (p, callback) {
+    var _readJSON = utils.readJSON;
+    utils.readJSON = function (p, callback) {
         callback();
     };
 
@@ -170,7 +152,7 @@ exports['loadSettings return errors from validate'] = function (test) {
     settings.loadSettings('projectdir', function (err, s) {
         test.equals(err.message, 'validation error');
         process.env['HOME'] = _home;
-        settings.readSettingsFile = _readSettingsFile;
+        utils.readJSON = _readJSON;
         settings.validate = _validate;
         path.exists = _exists;
         test.done();

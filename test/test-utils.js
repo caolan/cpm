@@ -47,3 +47,22 @@ exports['descendants'] = function (test) {
         test.done();
     });
 };
+
+exports['readJSON'] = function (test) {
+    test.expect(2);
+    var p = __dirname + '/fixtures/valid_json';
+    utils.readJSON(p, function (err, settings) {
+        test.ok(!err);
+        test.same(settings, {one:1,two:2});
+        test.done();
+    });
+};
+
+exports['readJSON'] = function (test) {
+    test.expect(1);
+    var p = __dirname + '/fixtures/invalid_json';
+    utils.readJSON(p, function (err, settings) {
+        test.ok(err, 'return JSON parsing errors');
+        test.done();
+    });
+};
