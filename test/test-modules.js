@@ -104,3 +104,24 @@ exports['require between modules'] = function (test) {
     );
     test.done();
 };
+
+exports['require missing module'] = function (test) {
+    test.expect(1);
+    var packages = {
+        app1: {
+            lib: {
+                hello: "var name = require('../../app2/lib/name').name;\n" +
+                "exports.hello = function () {\n" +
+                "    return 'hello ' + name;\n" +
+                "};"
+             }
+         }
+    };
+    try {
+        modules.require({}, packages, '/app1/lib','hello').hello();
+    }
+    catch (e) {
+        test.equals(e.message, 'Could not require module: ../../app2/lib/name');
+    }
+    test.done();
+};
