@@ -40,7 +40,12 @@ exports['loadPackage'] = function (test) {
                  }
              }
         });
-        test.same(attachments, []);
+        var static_dir = __dirname + '/fixtures/testpackage/static';
+        test.same(attachments, {
+            'static/folder/file1': static_dir + '/folder/file1',
+            'static/file2': static_dir + '/file2',
+            'static/file3': static_dir + '/file3'
+        });
         test.done();
     });
 };
