@@ -55,3 +55,28 @@ exports['require'] = function (test) {
     test.equals(module_cache['/testapp/other/lib2'].hi('test'), 'hi test');
     test.done();
 };
+
+exports['require within a modules'] = function (test) {
+    var module_cache = {};
+    var packages = {
+        testapp: {
+            lib: {
+                name: "exports.name = 'world';\n",
+                hello: "var name = require('name').name;\n" +
+                "exports.hello = function () {\n" +
+                "    return 'hello ' + name;\n" +
+                "};"
+             }
+         }
+    };
+    test.equals(
+        modules.require(module_cache, packages, '/testapp/lib','name').name,
+        'world'
+    );
+    test.equals(module_cache['/testapp/lib/name'].name, 'world');
+    test.equals(
+        modules.require(module_cache, packages, '/testapp/lib','hello').hello(),
+        'hello world'
+    );
+    test.done();
+};
