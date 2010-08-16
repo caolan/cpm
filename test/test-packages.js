@@ -15,11 +15,15 @@ exports['loadPackage'] = function (test) {
             ],
             directories: {
                 attachments: ["static"],
+                modules: ["lib"],
                 properties: ["validate_doc_update.js", "shows", "views"]
             }
         });
         test.same(_design, {
             'package': pkg,
+            'lib': {
+                'module': 'exports.test = "test module";\n'
+            },
             'validate_doc_update': 'function (newDoc, oldDoc, userCtx) {\n' +
             '    // some validation function\n' +
             '}',
