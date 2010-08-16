@@ -15,12 +15,16 @@ exports['loadPackage'] = function (test) {
             ],
             directories: {
                 attachments: ["static"],
+                templates: ["templates"],
                 modules: ["lib"],
                 properties: ["validate_doc_update.js", "shows", "views"]
             }
         });
         test.same(_design, {
             'package': pkg,
+            'templates': {
+                'test.html': "module.exports = '<h1>\"\\'test\\'\"</h1>\\n';"
+            },
             'lib': {
                 'module': 'exports.test = "test module";\n'
             },
