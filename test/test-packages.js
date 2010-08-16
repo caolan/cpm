@@ -15,14 +15,26 @@ exports['loadPackage'] = function (test) {
             ],
             directories: {
                 attachments: ["static"],
-                properties: ["validate_doc_update.js"]
+                properties: ["validate_doc_update.js", "shows", "views"]
             }
         });
         test.same(_design, {
             'package': pkg,
             'validate_doc_update': 'function (newDoc, oldDoc, userCtx) {\n' +
-                '    // some validation function\n' +
-            '};\n'
+            '    // some validation function\n' +
+            '}',
+            'shows': {
+                'testshow': 'function (doc, req) {\n' +
+                '    // some show function\n' +
+                '}'
+            },
+            'views': {
+                'testview': {
+                    map: 'function (doc) {\n' +
+                    '        emit(doc._id, doc);\n' +
+                    '    }'
+                 }
+             }
         });
         test.same(attachments, []);
         test.done();

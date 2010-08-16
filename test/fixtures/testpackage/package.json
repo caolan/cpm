@@ -6,6 +6,6 @@
     ],
     "directories": {
         "attachments": ["static"],
-        "properties": ["validate_doc_update.js"]
+        "properties": ["validate_doc_update.js", "shows", "views"]
     }
 }
