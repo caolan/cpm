@@ -80,3 +80,27 @@ exports['require within a modules'] = function (test) {
     );
     test.done();
 };
+
+exports['require between modules'] = function (test) {
+    var module_cache = {};
+    var packages = {
+        app1: {
+            lib: {
+                hello: "var name = require('../../app2/lib/name').name;\n" +
+                "exports.hello = function () {\n" +
+                "    return 'hello ' + name;\n" +
+                "};"
+             }
+         },
+         app2: {
+            lib: {
+                name: "exports.name = 'world';\n",
+            }
+         }
+    };
+    test.equals(
+        modules.require(module_cache, packages, '/app1/lib','hello').hello(),
+        'hello world'
+    );
+    test.done();
+};
