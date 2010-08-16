@@ -79,3 +79,43 @@ exports['relpath'] = function (test) {
     test.equals(utils.relpath('file.ext', dir), 'file.ext');
     test.done();
 };
+
+exports['stringifyFunctions'] = function (test) {
+    test.same(
+        utils.stringifyFunctions({
+            a: {
+                b: function (){return 'fn1'},
+                c: function (){return 'fn2'},
+                d: 123,
+            },
+            e: true,
+            f: null,
+            g: undefined
+        }),
+        {
+            a: {
+                b: "function (){return 'fn1'}",
+                c: "function (){return 'fn2'}",
+                d: 123,
+            },
+            e: true,
+            f: null,
+            g: undefined
+        }
+    );
+    test.done();
+};
+
+exports.evalSandboxed = function (test) {
+    test.expect(5);
+    var obj = {test: 'test'};
+    try { utils.evalSandboxed("require('sys').puts('fail!')"); }
+    catch (e) { test.ok(e, 'should throw an error'); }
+    try { utils.evalSandboxed("process.env['HOME']")}
+    catch (e) { test.ok(e, 'should throw an error'); }
+    try { utils.evalSandboxed("obj.test = 'asdf'")}
+    catch (e) { test.ok(e, 'should throw an error'); }
+    test.equals(obj.test, 'test');
+    test.same(utils.evalSandboxed("{a: {b: 123}}"), {a: {b: 123}});
+    test.done();
+};
