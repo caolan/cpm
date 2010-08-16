@@ -4,24 +4,20 @@ exports['require'] = function (test) {
     var module_cache = {};
     var packages = {
         testapp: {
-            _design: {
-                lib: {
-                    testlib: "exports.hello = function (name) {\n" +
-                    "    return 'hello ' + name;\n" +
-                    "};"
-                 },
-                 other: {
-                    lib2: "exports.hi = function (name) {\n" +
-                    "    return 'hi ' + name;\n" +
-                    "};"
-                 }
+            lib: {
+                testlib: "exports.hello = function (name) {\n" +
+                "    return 'hello ' + name;\n" +
+                "};"
+             },
+             other: {
+                lib2: "exports.hi = function (name) {\n" +
+                "    return 'hi ' + name;\n" +
+                "};"
              }
          },
          app2: {
-            _design: {
-                lib: {
-                    asdf: "exports.test = 'asdf';"
-                }
+            lib: {
+                asdf: "exports.test = 'asdf';"
             }
          }
     };
