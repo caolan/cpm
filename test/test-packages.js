@@ -194,7 +194,7 @@ exports['loadApp - duplicate validate_doc_update test'] = function (test) {
 };
 
 exports['push'] = function (test) {
-    test.expect(10);
+    test.expect(8);
 
     var pkgs = {
         testapp: {
@@ -217,17 +217,10 @@ exports['push'] = function (test) {
         callback(null, doc);
     };
 
-    var ensure = couchdb.ensure;
-    couchdb.exists = function (ins, id, callback) {
+    var _ensureDB = couchdb.ensureDB;
+    couchdb.ensureDB = function (ins, callback) {
         test.same(ins, instance);
-        test.equals(id, '');
-        callback(null, false);
-    };
-
-    var createDB = couchdb.createDB;
-    couchdb.createDB = function (ins, db, callback) {
-        test.same(ins, instance);
-        callback(null, db);
+        callback(null, this);
     };
 
     var uploads = {};
@@ -244,6 +237,7 @@ exports['push'] = function (test) {
             '_design/testapp/2': {file: 'two', rev: 2}
         });
         test.ok(pkgs.testapp._attachments === undefined);
+        couchdb.ensureDB = _ensureDB;
         couchdb.upload = _upload;
         couchdb.save = _save;
         test.done();
