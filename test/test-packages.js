@@ -117,3 +117,46 @@ exports['loadApp'] = function (test) {
         test.done();
     });
 };
+
+exports['loadApp - app module only'] = function (test) {
+    var file = __dirname + '/fixtures/appname';
+
+    packages.loadPackage(file, function (err, pkg, _design) {
+        if (err) throw err;
+        var pkgs = {};
+        pkgs[pkg.name] = _design;
+        packages.loadApp(pkgs, pkg.name, pkg.app);
+        test.same(_design.shows, {
+            'appshow': 'function () {\n' +
+            '    var args = Array.prototype.call(arguments);\n' +
+            '    var fn = require("../app")["shows"]["appshow"];\n' +
+            '    return fn.apply(this, args);\n' +
+            '}'
+        });
+        test.same(_design.lists, {
+            'applist': 'function () {\n' +
+            '    var args = Array.prototype.call(arguments);\n' +
+            '    var fn = require("../app")["lists"]["applist"];\n' +
+            '    return fn.apply(this, args);\n' +
+            '}'
+        });
+        test.same(_design.updates, {
+            'appupdate': 'function () {\n' +
+            '    var args = Array.prototype.call(arguments);\n' +
+            '    var fn = require("../app")["updates"]["appupdate"];\n' +
+            '    return fn.apply(this, args);\n' +
+            '}'
+        });
+        test.equals(
+            _design.validate_doc_update,
+            'function (oldDoc, newDoc, userCtx) {\n' +
+            '    // validate fn\n' +
+            '}'
+        );
+        test.same(_design.rewrites, [
+            {from: '/show/:id', to: '_show/appshow/:id'},
+            {from: '/list', to: '_list/appshow/testview'}
+        ]);
+        test.done();
+    });
+};

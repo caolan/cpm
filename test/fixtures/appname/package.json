@@ -1,0 +1,7 @@
+{
+    "name": "appname",
+    "app": "app",
+    "directories": {
+        "modules": ["app.js"]
+    }
+}
