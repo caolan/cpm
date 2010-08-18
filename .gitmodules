@@ -7,3 +7,6 @@
 [submodule "deps/async"]
 	path = deps/async
 	url = git://github.com/caolan/async.git
+[submodule "deps/node-mime"]
+	path = deps/node-mime
+	url = git://github.com/bentomas/node-mime.git

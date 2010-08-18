@@ -1,4 +1,5 @@
 var packages = require('../lib/packages'),
+    couchdb = require('../lib/couchdb'),
     fs = require('fs');
 
 
@@ -65,7 +66,11 @@ exports['loadPackage'] = function (test) {
             'static/file2': static_dir + '/file2',
             'static/file3': static_dir + '/file3'
         });
+        test.equals(_design.language, 'javascript');
+        test.equals(_design._id, 'testpackage');
         test.same(Object.keys(_design).sort(), [
+            'language',
+            '_id',
             'package',
             'templates',
             'lib',
@@ -184,6 +189,63 @@ exports['loadApp - duplicate validate_doc_update test'] = function (test) {
             '    // some validation function\n' +
             '}'
         );
+        test.done();
+    });
+};
+
+exports['push'] = function (test) {
+    test.expect(10);
+
+    var pkgs = {
+        testapp: {
+            _attachments: {'1':'one', '2':'two'},
+            other_properties: 'asdf'
+        }
+    };
+    var instance = {
+        hostname: 'host',
+        port: 123,
+        db: 'testdb'
+    };
+
+    var _save = couchdb.save;
+    couchdb.save = function (ins, id, doc, options, callback) {
+        test.same(ins, instance);
+        test.equals(id, '_design/testapp');
+        test.same(doc, pkgs.testapp);
+        doc._rev = 1;
+        callback(null, doc);
+    };
+
+    var ensure = couchdb.ensure;
+    couchdb.exists = function (ins, id, callback) {
+        test.same(ins, instance);
+        test.equals(id, '');
+        callback(null, false);
+    };
+
+    var createDB = couchdb.createDB;
+    couchdb.createDB = function (ins, db, callback) {
+        test.same(ins, instance);
+        callback(null, db);
+    };
+
+    var uploads = {};
+    var _upload = couchdb.upload;
+    couchdb.upload = function (ins, path, file, rev, callback) {
+        test.same(ins, instance);
+        uploads[path] = {file: file, rev: rev};
+        callback(null, rev + 1);
+    };
+
+    packages.push(instance, pkgs, function (err) {
+        test.same(uploads, {
+            '_design/testapp/1': {file: 'one', rev: 1},
+            '_design/testapp/2': {file: 'two', rev: 2}
+        });
+        test.ok(pkgs.testapp._attachments === undefined);
+        couchdb.upload = _upload;
+        couchdb.save = _save;
         test.done();
     });
 };
