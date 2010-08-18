@@ -15,7 +15,7 @@ exports['loadPackage'] = function (test) {
                 'testlib1',
                 'testlib2'
             ],
-            directories: {
+            paths: {
                 attachments: ["static"],
                 templates: ["templates"],
                 modules: ["lib"],

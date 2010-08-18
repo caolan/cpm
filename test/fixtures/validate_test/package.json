@@ -1,7 +1,7 @@
 {
     "name": "appname",
     "app": "app",
-    "directories": {
+    "paths": {
         "modules": ["app.js"],
         "properties": ["validate_doc_update.js"]
     }
