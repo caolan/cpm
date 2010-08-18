@@ -1,4 +1,5 @@
-var packages = require('../lib/packages');
+var packages = require('../lib/packages'),
+    fs = require('fs');
 
 
 exports['loadPackage'] = function (test) {
@@ -9,6 +10,7 @@ exports['loadPackage'] = function (test) {
 
         test.same(pkg, {
             name: 'testpackage',
+            app: 'lib/app',
             dependencies: [
                 'testlib1',
                 'testlib2'
@@ -27,12 +29,8 @@ exports['loadPackage'] = function (test) {
         });
         test.same(_design.lib, {
             'module': 'exports.test = "test module";\n',
-            'module2': 'exports.test = "test module 2";\n'
-            /*'app': 'exports.shows = {\n' +
-            '    appshow: function (doc, req) {\n' +
-            '        return doc._id + " shown";\n' +
-            '    }\n' +
-            '};\n'*/
+            'module2': 'exports.test = "test module 2";\n',
+            'app':fs.readFileSync(__dirname+'/fixtures/testpackage/lib/app.js').toString()
         });
         test.equals(
             _design.validate_doc_update,
@@ -43,7 +41,12 @@ exports['loadPackage'] = function (test) {
         test.same(_design.shows, {
             'testshow': 'function (doc, req) {\n' +
             '    // some show function\n' +
-            '}'
+            '}'/*,
+            'appshow': 'function () {\n' +
+            '    var args = Array.prototype.call(arguments);\n' +
+            '    var fn = require("../lib/app").shows["appshow"];\n' +
+            '    return fn.apply(this, args);\n' +
+            '}'*/
         });
         test.same(_design.views, {
             'testview': {
@@ -71,6 +74,46 @@ exports['loadPackage'] = function (test) {
             'views',
             '_attachments'
         ].sort());
+        test.done();
+    });
+};
+
+exports['loadApp'] = function (test) {
+    var file = __dirname + '/fixtures/testpackage';
+
+    packages.loadPackage(file, function (err, pkg, _design) {
+        if (err) throw err;
+        var pkgs = {};
+        pkgs[pkg.name] = _design;
+        packages.loadApp(pkgs, pkg.name, pkg.app);
+        test.same(_design.shows, {
+            'testshow': 'function (doc, req) {\n' +
+            '    // some show function\n' +
+            '}',
+            'appshow': 'function () {\n' +
+            '    var args = Array.prototype.call(arguments);\n' +
+            '    var fn = require("../lib/app")["shows"]["appshow"];\n' +
+            '    return fn.apply(this, args);\n' +
+            '}'
+        });
+        test.same(_design.lists, {
+            'applist': 'function () {\n' +
+            '    var args = Array.prototype.call(arguments);\n' +
+            '    var fn = require("../lib/app")["lists"]["applist"];\n' +
+            '    return fn.apply(this, args);\n' +
+            '}'
+        });
+        test.same(_design.updates, {
+            'appupdate': 'function () {\n' +
+            '    var args = Array.prototype.call(arguments);\n' +
+            '    var fn = require("../lib/app")["updates"]["appupdate"];\n' +
+            '    return fn.apply(this, args);\n' +
+            '}'
+        });
+        test.same(_design.rewrites, [
+            {from: '/show/:id', to: '_show/appshow/:id'},
+            {from: '/list', to: '_list/appshow/testview'}
+        ]);
         test.done();
     });
 };

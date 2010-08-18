@@ -1,5 +1,6 @@
 {
     "name": "testpackage",
+    "app": "lib/app",
     "dependencies": [
         "testlib1",
         "testlib2"
