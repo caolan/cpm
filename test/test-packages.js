@@ -160,3 +160,30 @@ exports['loadApp - app module only'] = function (test) {
         test.done();
     });
 };
+
+exports['loadApp - duplicate validate_doc_update test'] = function (test) {
+    test.expect(2);
+    var file = __dirname + '/fixtures/validate_test';
+
+    packages.loadPackage(file, function (err, pkg, _design) {
+        if (err) throw err;
+        var pkgs = {};
+        pkgs[pkg.name] = _design;
+        try {
+            packages.loadApp(pkgs, pkg.name, pkg.app);
+        }
+        catch (e) {
+            test.equals(
+                e.message,
+                'Could not load app: validate_doc_update already exists'
+            );
+        }
+        test.equals(
+            _design.validate_doc_update,
+            'function (newDoc, oldDoc, userCtx) {\n' +
+            '    // some validation function\n' +
+            '}'
+        );
+        test.done();
+    });
+};
