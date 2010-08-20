@@ -1,0 +1,9 @@
+{
+    "instances": {
+        "dev": {
+            "hostname": "localhost",
+            "port": 5984,
+            "db": "test"
+        }
+    }
+}
