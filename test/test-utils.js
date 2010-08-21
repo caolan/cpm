@@ -81,21 +81,28 @@ exports['relpath'] = function (test) {
 };
 
 exports['stringifyFunctions'] = function (test) {
+    var Script = process.binding('evals').Script;
+    var obj = {
+        a: {
+            // this is not an instanceof Function but is
+            // typeof 'function'...
+            b: Script.runInNewContext("(function (){return 'fn1';})"),
+            // this is an instanceof Function, and also typeof
+            // Function
+            c: function (){return 'fn2';},
+            d: 123,
+        },
+        e: true,
+        f: null,
+        g: undefined
+    }
+    var stringified = utils.stringifyFunctions(obj);
     test.same(
-        utils.stringifyFunctions({
-            a: {
-                b: function (){return 'fn1'},
-                c: function (){return 'fn2'},
-                d: 123,
-            },
-            e: true,
-            f: null,
-            g: undefined
-        }),
+        stringified,
         {
             a: {
-                b: "function (){return 'fn1'}",
-                c: "function (){return 'fn2'}",
+                b: "function (){return 'fn1';}",
+                c: "function (){return 'fn2';}",
                 d: 123,
             },
             e: true,
@@ -103,6 +110,10 @@ exports['stringifyFunctions'] = function (test) {
             g: undefined
         }
     );
+    // deepEquals seems to test the string representations of functions
+    // so we also need to test the type is correct
+    test.equals(typeof stringified.a.b, 'string');
+    test.equals(typeof stringified.a.c, 'string');
     test.done();
 };
 

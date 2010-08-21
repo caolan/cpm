@@ -31,7 +31,9 @@ exports['loadPackage'] = function (test) {
         test.same(_design.lib, {
             'module': 'exports.test = "test module";\n',
             'module2': 'exports.test = "test module 2";\n',
-            'app':fs.readFileSync(__dirname+'/fixtures/testpackage/lib/app.js').toString()
+            'app': fs.readFileSync(
+                __dirname + '/fixtures/testpackage/lib/app.js'
+            ).toString()
         });
         test.equals(
             _design.validate_doc_update,
@@ -61,6 +63,9 @@ exports['loadPackage'] = function (test) {
                 '    }'
              }
         });
+        // test that the functions have been stringified
+        test.equals(typeof _design.views.testview.map, 'string');
+        test.equals(typeof _design.views.testview2.map, 'string');
         test.same(_design._attachments, {
             'static/folder/file1': static_dir + '/folder/file1',
             'static/file2': static_dir + '/file2',
