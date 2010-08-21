@@ -94,7 +94,8 @@ exports['stringifyFunctions'] = function (test) {
         },
         e: true,
         f: null,
-        g: undefined
+        g: undefined,
+        h: ['one', 'two', 3]
     }
     var stringified = utils.stringifyFunctions(obj);
     test.same(
@@ -107,13 +108,18 @@ exports['stringifyFunctions'] = function (test) {
             },
             e: true,
             f: null,
-            g: undefined
+            g: undefined,
+            h: ['one', 'two', 3]
         }
     );
     // deepEquals seems to test the string representations of functions
     // so we also need to test the type is correct
     test.equals(typeof stringified.a.b, 'string');
     test.equals(typeof stringified.a.c, 'string');
+    // ensure that the array keeps its type, and doesn't change to an object
+    // with the index numbers as properties: {"0": ..., "1": ...} etc
+    test.ok(stringified.h instanceof Array);
+    test.equals(stringified.h.length, 3);
     test.done();
 };
 

@@ -124,6 +124,9 @@ exports['loadApp'] = function (test) {
             {from: '/show/:id', to: '_show/appshow/:id'},
             {from: '/list', to: '_list/appshow/testview'}
         ]);
+        // ensure that the array keeps its type, and doesn't change to an object
+        // with the index numbers as properties: {"0": ..., "1": ...} etc
+        test.ok(_design.rewrites instanceof Array);
         test.done();
     });
 };
