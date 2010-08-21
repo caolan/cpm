@@ -17,9 +17,9 @@ exports['loadPackage'] = function (test) {
                 'testlib2'
             ],
             paths: {
-                attachments: ["static"],
+                attachments: "static",
                 templates: ["templates"],
-                modules: ["lib"],
+                modules: "lib",
                 properties: ["validate_doc_update.js", "shows", "views"]
             }
         });
