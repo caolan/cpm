@@ -1,0 +1,8 @@
+{
+    "name": "repository",
+    "app": "app",
+    "paths": {
+        "modules": "app.js",
+        "properties": "views"
+    }
+}

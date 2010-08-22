@@ -11,6 +11,7 @@ exports['loadPackage'] = function (test) {
 
         test.same(pkg, {
             name: 'testpackage',
+            version: '0.0.1',
             app: 'lib/app',
             dependencies: [
                 'testlib1',
@@ -72,10 +73,8 @@ exports['loadPackage'] = function (test) {
             'static/file3': static_dir + '/file3'
         });
         test.equals(_design.language, 'javascript');
-        test.equals(_design._id, 'testpackage');
         test.same(Object.keys(_design).sort(), [
             'language',
-            '_id',
             'package',
             'templates',
             'lib',

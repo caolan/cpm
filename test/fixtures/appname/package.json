@@ -1,5 +1,6 @@
 {
     "name": "appname",
+    "version": "0.1.2",
     "app": "app",
     "paths": {
         "modules": ["app.js"]
