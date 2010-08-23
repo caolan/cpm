@@ -9,5 +9,8 @@ exports.validate_doc_update = function (newDoc, savedDoc, userCtx) {
         if(typeof newDoc.package.version !== 'string') {
             throw({forbidden: 'Package version numbers should be a string'});
         }
+        if(newDoc._id != newDoc.package.name + '-' + newDoc.package.version){
+            throw({forbidden: 'invalid package _id format'});
+        }
     }
 };

@@ -161,7 +161,15 @@ exports['loadSettings return errors from validate'] = function (test) {
 
 exports['validate ok'] = function (test) {
     settings.validate({
-        cache: '/home/user/.cpm/cache'
+        cache: '/home/user/.cpm/cache',
+        default_repository: 'default',
+        repositories: {
+            'default': {
+                hostname: 'localhost',
+                port: 5984,
+                db: 'repository'
+            }
+        }
     });
     test.done();
 };
