@@ -1,6 +1,6 @@
 var utils = require('../lib/utils');
 
-exports['propertyPath'] = function (test) {
+exports['setPropertyPath'] = function (test) {
     var obj = {test: 'test'};
     utils.setPropertyPath(obj, 'some/example/path.js', 'val');
     test.same(obj, {test: 'test', some: {example: {path: 'val'}}});
@@ -20,6 +20,21 @@ exports['propertyPath'] = function (test) {
             other: {path: 'val2'}
         }
     });
+    test.done();
+};
+
+exports['getPropertyPath'] = function (test) {
+    var obj = {
+        test: 'test',
+        some: {
+            example: {path: 'val'},
+            other: {path: 'val2'}
+        }
+    };
+    test.equals(utils.getPropertyPath(obj, 'test'), 'test');
+    test.equals(utils.getPropertyPath(obj, 'some/example/path'), 'val');
+    test.same(utils.getPropertyPath(obj, 'some/other'), {path: 'val2'});
+    test.same(utils.getPropertyPath(obj, ''), obj);
     test.done();
 };
 
