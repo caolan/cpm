@@ -1,5 +1,6 @@
 var packages = require('../lib/packages'),
     couchdb = require('../lib/couchdb'),
+    async = require('../deps/async'),
     fs = require('fs');
 
 
@@ -198,4 +199,80 @@ exports['loadApp - duplicate validate_doc_update test'] = function (test) {
         );
         test.done();
     });
+};
+
+/*exports['expand'] = function (test) {
+    test.expect(2);
+
+    var pkg = {
+        _id: '_design/expand_test',
+        _rev: 'rev_no',
+        package: {
+            name: 'expand_test',
+            version: '0.0.1',
+            paths: {
+                modules: 'lib'
+            }
+        },
+        cpm: {
+            files: [
+                'lib/hello.js',
+                'lib/name.js'
+            ]
+        },
+        lib: {
+            hello: "exports.hello = function (name) {\n" +
+            "    return 'hello ' + name;\n" +
+            "};\n",
+            name: "exports.name = 'world';\n"
+        }
+    };
+    var dir = __dirname + '/fixtures/expand_test';
+    packages.expand(pkg, dir, function (err) {
+        if (err) throw err;
+        async.parallel([
+            function (cb) {
+                fs.readFile(dir + '/lib/hello.js', function (err, data) {
+                    if (err) return cb(err);
+                    test.equals(data.toString(), pkg.lib.hello);
+                });
+            },
+            function (cb) {
+                fs.readFile(dir + '/lib/name.js', function (err, data) {
+                    if (err) return cb(err);
+                    test.equals(data.toString(), pkg.lib.name);
+                });
+            }
+        ], function (err) {
+            if (err) throw err;
+            test.done();
+        });
+    });
+};*/
+
+exports['pathType'] = function (test) {
+    var pkg = {
+        package: {
+            paths: {
+                modules: ['deps','lib','validate_doc_update.js'],
+                attachments: 'static',
+                templates: 'templates',
+                properties: ['views', 'shows']
+            }
+        }
+    };
+    test.equals(packages.pathType(pkg, 'lib/test/xyz'), 'modules');
+    test.equals(packages.pathType(pkg, 'deps/test/xyz'), 'modules');
+    test.equals(packages.pathType(pkg, 'validate_doc_update'), 'modules');
+    test.equals(packages.pathType(pkg, 'static/index.html'), 'attachments');
+    test.equals(packages.pathType(pkg, 'templates/index.html'), 'templates');
+    test.equals(packages.pathType(pkg, 'views/myview'), 'properties');
+    try {
+        packages.pathType(pkg, 'xyz');
+        test.ok(false, 'should have thrown error');
+    }
+    catch (e) {
+        test.ok(e, 'error thrown for invalid path');
+    }
+    test.done();
 };
