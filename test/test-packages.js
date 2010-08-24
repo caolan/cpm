@@ -1,6 +1,8 @@
 var packages = require('../lib/packages'),
     couchdb = require('../lib/couchdb'),
     async = require('../deps/async'),
+    utils = require('../lib/utils'),
+    child_process = require('child_process'),
     fs = require('fs');
 
 
@@ -201,7 +203,7 @@ exports['loadApp - duplicate validate_doc_update test'] = function (test) {
     });
 };
 
-/*exports['expand'] = function (test) {
+exports['expand'] = function (test) {
     test.expect(2);
 
     var pkg = {
@@ -227,28 +229,43 @@ exports['loadApp - duplicate validate_doc_update test'] = function (test) {
             name: "exports.name = 'world';\n"
         }
     };
+
     var dir = __dirname + '/fixtures/expand_test';
-    packages.expand(pkg, dir, function (err) {
-        if (err) throw err;
-        async.parallel([
-            function (cb) {
-                fs.readFile(dir + '/lib/hello.js', function (err, data) {
-                    if (err) return cb(err);
-                    test.equals(data.toString(), pkg.lib.hello);
-                });
-            },
-            function (cb) {
-                fs.readFile(dir + '/lib/name.js', function (err, data) {
-                    if (err) return cb(err);
-                    test.equals(data.toString(), pkg.lib.name);
-                });
-            }
-        ], function (err) {
+
+    // remove any old test data
+    var rm = child_process.spawn('rm', ['-rf', dir]);
+    rm.on('error', function (err) { throw err; });
+    rm.on('exit', function (code) {
+        utils.ensureDir(dir, function (err) {
             if (err) throw err;
-            test.done();
+
+            packages.expand(pkg, dir, function (err) {
+                if (err) throw err;
+                async.parallel([
+                    function (cb) {
+                        fs.readFile(dir+'/lib/hello.js', function (err, data) {
+                            if (err) return cb(err);
+                            test.equals(data.toString(), pkg.lib.hello);
+                            cb();
+                        });
+                    },
+                    function (cb) {
+                        fs.readFile(dir+'/lib/name.js', function (err, data) {
+                            if (err) return cb(err);
+                            test.equals(data.toString(), pkg.lib.name);
+                            cb();
+                        });
+                    }
+                ], function (err) {
+                    if (err) throw err;
+                    test.done();
+                });
+            });
+
         });
     });
-};*/
+
+};
 
 exports['pathType'] = function (test) {
     var pkg = {
