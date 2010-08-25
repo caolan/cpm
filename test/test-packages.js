@@ -394,7 +394,7 @@ exports['pathType'] = function (test) {
     };
     test.equals(packages.pathType(pkg, 'lib/test/xyz'), 'modules');
     test.equals(packages.pathType(pkg, 'deps/test/xyz'), 'modules');
-    test.equals(packages.pathType(pkg, 'validate_doc_update'), 'modules');
+    test.equals(packages.pathType(pkg, 'validate_doc_update.js'), 'modules');
     test.equals(packages.pathType(pkg, 'static/index.html'), 'attachments');
     test.equals(packages.pathType(pkg, 'templates/index.html'), 'templates');
     test.equals(packages.pathType(pkg, 'views/myview'), 'properties');
