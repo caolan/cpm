@@ -1,5 +1,10 @@
 var couchdb = require('../lib/couchdb'),
-    instance = require('../lib/instance');
+    instance = require('../lib/instance'),
+    logger = require('../lib/logger');
+
+// some functions called by this module output info using logger, but
+// we want to just ignore that for the tests.
+logger.level = 'error';
 
 
 exports['push'] = function (test) {

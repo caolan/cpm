@@ -7,9 +7,9 @@ var packages = require('../lib/packages'),
 
 
 exports['loadPackage'] = function (test) {
-    var file = __dirname + '/fixtures/testpackage';
+    var dir = __dirname + '/fixtures/testpackage';
 
-    packages.loadPackage(file, function (err, pkg, _design) {
+    packages.loadPackage(dir, function (err, pkg, _design) {
         if(err) throw err;
 
         test.same(pkg, {
@@ -27,8 +27,35 @@ exports['loadPackage'] = function (test) {
                 properties: ["validate_doc_update.js", "shows", "views"]
             }
         });
-        var static_dir = __dirname + '/fixtures/testpackage/static';
+        var static_dir = dir + '/static';
         test.same(_design.package, pkg);
+        test.same(_design.cpm.files.sort(), [
+            'validate_doc_update.js',
+            'templates/test.html',
+            'lib/app.js',
+            'lib/module2.js',
+            'lib/module.js',
+            'views/testview.js',
+            'views/testview2.js',
+            'shows/testshow.js',
+            'static/folder/file1',
+            'static/file2',
+            'static/file3'
+        ].sort());
+        test.same(_design.cpm.properties_files, {
+            'validate_doc_update.js': fs.readFileSync(
+                dir + '/validate_doc_update.js'
+            ).toString(),
+            'views/testview.js': fs.readFileSync(
+                dir + '/views/testview.js'
+            ).toString(),
+            'views/testview2.js': fs.readFileSync(
+                dir + '/views/testview2.js'
+            ).toString(),
+            'shows/testshow.js': fs.readFileSync(
+                dir + '/shows/testshow.js'
+            ).toString()
+        });
         test.same(_design.templates, {
             'test.html': "module.exports = '<h1>\"\\'test\\'\"</h1>\\n';"
         });
@@ -84,7 +111,8 @@ exports['loadPackage'] = function (test) {
             'validate_doc_update',
             'shows',
             'views',
-            '_attachments'
+            '_attachments',
+            'cpm'
         ].sort());
         test.done();
     });
@@ -203,44 +231,96 @@ exports['loadApp - duplicate validate_doc_update test'] = function (test) {
     });
 };
 
-exports['expand'] = function (test) {
-    test.expect(2);
+exports['clone'] = function (test) {
+    test.expect(10);
 
     var pkg = {
-        _id: '_design/expand_test',
+        _id: '_design/clone_test',
         _rev: 'rev_no',
         package: {
-            name: 'expand_test',
+            name: 'clone_test',
             version: '0.0.1',
             paths: {
-                modules: 'lib'
+                modules: ['lib','deps'],
+                properties: 'views',
+                templates: 'templates',
+                attachments: ['static']
             }
         },
         cpm: {
+            properties_files: {
+                'views/testview.js': '{\n' +
+                '    map: function (doc) {\n' +
+                '        emit(doc._id, doc);\n' +
+                '    }\n' +
+                '}\n'
+            },
             files: [
                 'lib/hello.js',
-                'lib/name.js'
+                'deps/name.js',
+                'views/testview.js',
+                'templates/test.html',
+                'static/index.html'
             ]
+        },
+        views: {
+            testview: {
+                map: 'function (doc) {\n' +
+                '        emit(doc._id, doc);\n' +
+                '    }'
+             }
+        },
+        templates: {
+            'test.html': "module.exports = '<h1>\"\\'test\\'\"</h1>\\n';"
         },
         lib: {
             hello: "exports.hello = function (name) {\n" +
             "    return 'hello ' + name;\n" +
-            "};\n",
+            "};\n"
+        },
+        deps: {
             name: "exports.name = 'world';\n"
         }
     };
 
-    var dir = __dirname + '/fixtures/expand_test';
+    var ins = {
+        hostname: 'hostname',
+        port: 5984,
+        db: 'db'
+    };
+
+    var dir = __dirname + '/fixtures/clone_test';
+
+    var _couchdb_get = couchdb.get;
+    couchdb.get = function (instance, id, callback) {
+        test.same(instance, ins);
+        test.equals(id, pkg._id);
+        callback(null, pkg);
+    };
+
+    var _couchdb_download = couchdb.download;
+    couchdb.download = function (instance, path, file, callback) {
+        test.same(instance, ins);
+        test.equals(path, pkg._id + '/static/index.html');
+        test.equals(file, dir + '/static/index.html');
+        callback(null);
+    };
 
     // remove any old test data
     var rm = child_process.spawn('rm', ['-rf', dir]);
     rm.on('error', function (err) { throw err; });
     rm.on('exit', function (code) {
         utils.ensureDir(dir, function (err) {
-            if (err) throw err;
+            if (err) {
+                throw err;
+                return test.done();
+            }
 
-            packages.expand(pkg, dir, function (err) {
-                if (err) throw err;
+            packages.clone(ins, pkg._id, dir, function (err) {
+                if (err) {
+                    throw err;
+                    return test.done();
+                }
                 async.parallel([
                     function (cb) {
                         fs.readFile(dir+'/lib/hello.js', function (err, data) {
@@ -250,14 +330,48 @@ exports['expand'] = function (test) {
                         });
                     },
                     function (cb) {
-                        fs.readFile(dir+'/lib/name.js', function (err, data) {
+                        fs.readFile(dir+'/deps/name.js', function (err, data) {
                             if (err) return cb(err);
-                            test.equals(data.toString(), pkg.lib.name);
+                            test.equals(data.toString(), pkg.deps.name);
+                            cb();
+                        });
+                    },
+                    function (cb) {
+                        var f = 'templates/test.html';
+                        fs.readFile(dir + '/' + f, function (err, data) {
+                            if (err) return cb(err);
+                            test.equals(
+                                data.toString(),
+                                '<h1>"\'test\'"</h1>\n'
+                            );
+                            cb();
+                        });
+                    },
+                    function (cb) {
+                        var f = 'views/testview.js';
+                        fs.readFile(dir + '/' + f, function (err, data) {
+                            if (err) return cb(err);
+                            test.equals(
+                                data.toString(),
+                                pkg.cpm.properties_files[f]
+                            );
+                            cb();
+                        });
+                    },
+                    function (cb) {
+                        var f = 'package.json';
+                        fs.readFile(dir + '/' + f, function (err, data) {
+                            if (err) return cb(err);
+                            test.equals(
+                                data.toString(),
+                                JSON.stringify(pkg.package, null, 4)
+                            );
                             cb();
                         });
                     }
                 ], function (err) {
                     if (err) throw err;
+                    couchdb.get = _couchdb_get;
                     test.done();
                 });
             });
