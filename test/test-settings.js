@@ -36,7 +36,14 @@ exports['loadSettings with local .cpmrc'] = function (test) {
     };
 
     settings.loadSettings('projectdir', function (err, s) {
-        test.same(s, {cache: '/home/user/.cpm/cache', a:1, b:3, c:4});
+        test.same(s, {
+            cache: '/home/user/.cpm/cache',
+            repositories: {},
+            instances: {},
+            a:1,
+            b:3,
+            c:4
+        });
         process.env['HOME'] = _home;
         utils.readJSON = _readJSON;
         settings.validate = _validate;
@@ -81,7 +88,13 @@ exports['loadSettings without local .cpmrc'] = function (test) {
     };
 
     settings.loadSettings('projectdir', function (err, s) {
-        test.same(s, {cache: '/home/user/.cpm/cache', a:1, b:2});
+        test.same(s, {
+            cache: '/home/user/.cpm/cache',
+            repositories: {},
+            instances: {},
+            a:1,
+            b:2
+        });
         process.env['HOME'] = _home;
         utils.readJSON = _readJSON;
         settings.validate = _validate;

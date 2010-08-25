@@ -364,7 +364,7 @@ exports['clone'] = function (test) {
                             if (err) return cb(err);
                             test.equals(
                                 data.toString(),
-                                JSON.stringify(pkg.package, null, 4)
+                                JSON.stringify(pkg.package, null, 4) + '\n'
                             );
                             cb();
                         });
