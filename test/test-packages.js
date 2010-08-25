@@ -295,7 +295,7 @@ exports['clone'] = function (test) {
     couchdb.get = function (instance, id, callback) {
         test.same(instance, ins);
         test.equals(id, pkg._id);
-        callback(null, pkg);
+        callback(null, pkg, 'response');
     };
 
     var _couchdb_download = couchdb.download;
