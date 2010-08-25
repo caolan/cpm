@@ -77,7 +77,7 @@ exports['loadPackage'] = function (test) {
             '    // some show function\n' +
             '}'/*,
             'appshow': 'function () {\n' +
-            '    var args = Array.prototype.call(arguments);\n' +
+            '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../lib/app").shows["appshow"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'*/
@@ -131,21 +131,21 @@ exports['loadApp'] = function (test) {
             '    // some show function\n' +
             '}',
             'appshow': 'function () {\n' +
-            '    var args = Array.prototype.call(arguments);\n' +
+            '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../lib/app")["shows"]["appshow"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
         test.same(_design.lists, {
             'applist': 'function () {\n' +
-            '    var args = Array.prototype.call(arguments);\n' +
+            '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../lib/app")["lists"]["applist"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
         test.same(_design.updates, {
             'appupdate': 'function () {\n' +
-            '    var args = Array.prototype.call(arguments);\n' +
+            '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../lib/app")["updates"]["appupdate"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
@@ -171,29 +171,30 @@ exports['loadApp - app module only'] = function (test) {
         packages.loadApp(pkgs, pkg.name, pkg.app);
         test.same(_design.shows, {
             'appshow': 'function () {\n' +
-            '    var args = Array.prototype.call(arguments);\n' +
+            '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../app")["shows"]["appshow"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
         test.same(_design.lists, {
             'applist': 'function () {\n' +
-            '    var args = Array.prototype.call(arguments);\n' +
+            '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../app")["lists"]["applist"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
         test.same(_design.updates, {
             'appupdate': 'function () {\n' +
-            '    var args = Array.prototype.call(arguments);\n' +
+            '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../app")["updates"]["appupdate"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
-        test.equals(
-            _design.validate_doc_update,
-            'function (oldDoc, newDoc, userCtx) {\n' +
-            '    // validate fn\n' +
+        test.equals(_design.validate_doc_update,
+            'function () {\n' +
+            '    var args = Array.prototype.slice.call(arguments);\n' +
+            '    var fn = require("app")["validate_doc_update"];\n' +
+            '    return fn.apply(this, args);\n' +
             '}'
         );
         test.same(_design.rewrites, [

@@ -16,7 +16,7 @@ exports.updates = {
     }
 };
 
-exports.validate_doc_update = function (oldDoc, newDoc, userCtx) {
+exports.validate_doc_update = function (newDoc, savedDoc, userCtx) {
     // validate fn
 };
 
