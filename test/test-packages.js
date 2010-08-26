@@ -154,8 +154,9 @@ exports['loadApp'] = function (test) {
             {from: '/show/:id', to: '_show/appshow/:id'},
             {from: '/list', to: '_list/appshow/testview'}
         ]);
-        // ensure that the array keeps its type, and doesn't change to an object
-        // with the index numbers as properties: {"0": ..., "1": ...} etc
+        // ensure that the array keeps its type, and doesn't change to an
+        // object with the index numbers as properties:
+        // {"0": ..., "1": ...} etc
         test.ok(_design.rewrites instanceof Array);
         test.done();
     });
@@ -201,33 +202,6 @@ exports['loadApp - app module only'] = function (test) {
             {from: '/show/:id', to: '_show/appshow/:id'},
             {from: '/list', to: '_list/appshow/testview'}
         ]);
-        test.done();
-    });
-};
-
-exports['loadApp - duplicate validate_doc_update test'] = function (test) {
-    test.expect(2);
-    var file = __dirname + '/fixtures/validate_test';
-
-    packages.loadPackage(file, function (err, pkg, _design) {
-        if (err) throw err;
-        var pkgs = {};
-        pkgs[pkg.name] = _design;
-        try {
-            packages.loadApp(pkgs, pkg.name, pkg.app);
-        }
-        catch (e) {
-            test.equals(
-                e.message,
-                'Could not load app: validate_doc_update already exists'
-            );
-        }
-        test.equals(
-            _design.validate_doc_update,
-            'function (newDoc, oldDoc, userCtx) {\n' +
-            '    // some validation function\n' +
-            '}'
-        );
         test.done();
     });
 };
@@ -406,5 +380,30 @@ exports['pathType'] = function (test) {
     catch (e) {
         test.ok(e, 'error thrown for invalid path');
     }
+    test.done();
+};
+
+exports['redirect'] = function (test) {
+    var _design = {};
+    var app = {
+        shows: { testshow: function () {} },
+        validate_doc_update: function () {}
+    };
+    packages.redirect(app, _design, 'app', ['shows'])
+    packages.redirect(app, _design, 'app', ['validate_doc_update'])
+    test.same(_design, {
+        shows: {
+            testshow: 'function () {\n' +
+            '    var args = Array.prototype.slice.call(arguments);\n' +
+            '    var fn = require("../app")["shows"]["testshow"];\n' +
+            '    return fn.apply(this, args);\n' +
+            '}'
+        },
+        validate_doc_update: 'function () {\n' +
+        '    var args = Array.prototype.slice.call(arguments);\n' +
+        '    var fn = require("app")["validate_doc_update"];\n' +
+        '    return fn.apply(this, args);\n' +
+        '}'
+    });
     test.done();
 };
