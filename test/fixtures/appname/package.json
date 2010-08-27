@@ -1,5 +1,6 @@
 {
     "name": "appname",
+    "description": "test app",
     "version": "0.1.2",
     "app": "app",
     "paths": {

@@ -1,5 +1,6 @@
 {
     "name": "testpackage",
+    "description": "test package",
     "version": "0.0.1",
     "app": "lib/app",
     "dependencies": [

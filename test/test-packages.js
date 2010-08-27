@@ -7,6 +7,7 @@ var packages = require('../lib/packages'),
 
 
 exports['loadPackage'] = function (test) {
+    test.expect(14);
     var dir = __dirname + '/fixtures/testpackage';
 
     packages.loadPackage(dir, function (err, pkg, _design) {
@@ -14,6 +15,7 @@ exports['loadPackage'] = function (test) {
 
         test.same(pkg, {
             name: 'testpackage',
+            description: 'test package',
             version: '0.0.1',
             app: 'lib/app',
             dependencies: [
@@ -405,5 +407,26 @@ exports['redirect'] = function (test) {
         '    return fn.apply(this, args);\n' +
         '}'
     });
+    test.done();
+};
+
+exports['validate package.json'] = function (test) {
+    test.expect(4);
+
+    var pass = function (pkg) {
+        try { packages.validate(pkg); return true; }
+        catch (e) { return false; }
+    };
+    var fail = function (pkg) { return !(pass(pkg)); }
+
+    test.ok(pass({
+        name: 'pkgname',
+        version: '0.0.1',
+        description: 'description'
+    }));
+
+    test.ok(fail({}));
+    test.ok(fail({name: 'pkgname'}));
+    test.ok(fail({name: 'pkgname', version: '0.0.1'}));
     test.done();
 };
