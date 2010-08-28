@@ -1,5 +1,7 @@
 {
     "name": "repository",
+    "version": "0.0.1",
+    "description": "package repository",
     "app": "app",
     "paths": {
         "modules": "app.js",
