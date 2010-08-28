@@ -17,3 +17,13 @@ exports.validate_doc_update = function (newDoc, savedDoc, userCtx) {
         }
     }
 };
+
+exports.rewrites = [
+    {from: '/', to: '_view/packages'},
+    {from: '/:name', to: '_view/packages', query: {
+        startkey: [':name'], endkey: [':name', {}]
+    }},
+    {from: '/:name/:version', to: '_view/packages', query: {
+        startkey: [':name', ':version'], endkey: [':name', ':version']
+    }}
+];

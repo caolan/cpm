@@ -1,9 +1,9 @@
 {
     map: function (doc) {
         if (doc.package) {
-            emit(doc.package.name, doc.package.version);
+            emit([doc.package.name, doc.package.version], doc._id);
         }
-    },
+    }/*,
     reduce: function (keys, values, rereduce) {
         var rv = {};
         var latest = '';
@@ -13,5 +13,5 @@
         }
         rv['latest'] = rv[latest];
         return rv;
-    }
+    }*/
 }
