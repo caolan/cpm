@@ -287,72 +287,64 @@ exports['clone'] = function (test) {
     var rm = child_process.spawn('rm', ['-rf', dir]);
     rm.on('error', function (err) { throw err; });
     rm.on('exit', function (code) {
-        utils.ensureDir(dir, function (err) {
+        packages.clone(ins, pkg._id, dir, function (err) {
             if (err) {
                 throw err;
                 return test.done();
             }
-
-            packages.clone(ins, pkg._id, dir, function (err) {
-                if (err) {
-                    throw err;
-                    return test.done();
+            async.parallel([
+                function (cb) {
+                    fs.readFile(dir+'/lib/hello.js', function (err, data) {
+                        if (err) return cb(err);
+                        test.equals(data.toString(), pkg.lib.hello);
+                        cb();
+                    });
+                },
+                function (cb) {
+                    fs.readFile(dir+'/deps/name.js', function (err, data) {
+                        if (err) return cb(err);
+                        test.equals(data.toString(), pkg.deps.name);
+                        cb();
+                    });
+                },
+                function (cb) {
+                    var f = 'templates/test.html';
+                    fs.readFile(dir + '/' + f, function (err, data) {
+                        if (err) return cb(err);
+                        test.equals(
+                            data.toString(),
+                            '<h1>"\'test\'"</h1>\n'
+                        );
+                        cb();
+                    });
+                },
+                function (cb) {
+                    var f = 'views/testview.js';
+                    fs.readFile(dir + '/' + f, function (err, data) {
+                        if (err) return cb(err);
+                        test.equals(
+                            data.toString(),
+                            pkg.cpm.properties_files[f]
+                        );
+                        cb();
+                    });
+                },
+                function (cb) {
+                    var f = 'package.json';
+                    fs.readFile(dir + '/' + f, function (err, data) {
+                        if (err) return cb(err);
+                        test.equals(
+                            data.toString(),
+                            JSON.stringify(pkg.package, null, 4) + '\n'
+                        );
+                        cb();
+                    });
                 }
-                async.parallel([
-                    function (cb) {
-                        fs.readFile(dir+'/lib/hello.js', function (err, data) {
-                            if (err) return cb(err);
-                            test.equals(data.toString(), pkg.lib.hello);
-                            cb();
-                        });
-                    },
-                    function (cb) {
-                        fs.readFile(dir+'/deps/name.js', function (err, data) {
-                            if (err) return cb(err);
-                            test.equals(data.toString(), pkg.deps.name);
-                            cb();
-                        });
-                    },
-                    function (cb) {
-                        var f = 'templates/test.html';
-                        fs.readFile(dir + '/' + f, function (err, data) {
-                            if (err) return cb(err);
-                            test.equals(
-                                data.toString(),
-                                '<h1>"\'test\'"</h1>\n'
-                            );
-                            cb();
-                        });
-                    },
-                    function (cb) {
-                        var f = 'views/testview.js';
-                        fs.readFile(dir + '/' + f, function (err, data) {
-                            if (err) return cb(err);
-                            test.equals(
-                                data.toString(),
-                                pkg.cpm.properties_files[f]
-                            );
-                            cb();
-                        });
-                    },
-                    function (cb) {
-                        var f = 'package.json';
-                        fs.readFile(dir + '/' + f, function (err, data) {
-                            if (err) return cb(err);
-                            test.equals(
-                                data.toString(),
-                                JSON.stringify(pkg.package, null, 4) + '\n'
-                            );
-                            cb();
-                        });
-                    }
-                ], function (err) {
-                    if (err) throw err;
-                    couchdb.get = _couchdb_get;
-                    test.done();
-                });
+            ], function (err) {
+                if (err) throw err;
+                couchdb.get = _couchdb_get;
+                test.done();
             });
-
         });
     });
 
