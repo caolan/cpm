@@ -6,13 +6,14 @@ var packages = require('../lib/packages'),
     fs = require('fs');
 
 
-exports['loadPackage'] = function (test) {
+exports['loadLocal'] = function (test) {
     test.expect(14);
     var dir = __dirname + '/fixtures/testpackage';
 
-    packages.loadPackage(dir, function (err, pkg, _design) {
+    packages.loadLocal(dir, function (err, doc) {
         if(err) throw err;
 
+        var pkg = doc.package;
         test.same(pkg, {
             name: 'testpackage',
             description: 'test package',
@@ -30,8 +31,8 @@ exports['loadPackage'] = function (test) {
             }
         });
         var static_dir = dir + '/static';
-        test.same(_design.package, pkg);
-        test.same(_design.cpm.files.sort(), [
+        test.same(doc.package, pkg);
+        test.same(doc.cpm.files.sort(), [
             'validate_doc_update.js',
             'templates/test.html',
             'lib/app.js',
@@ -44,7 +45,7 @@ exports['loadPackage'] = function (test) {
             'static/file2',
             'static/file3'
         ].sort());
-        test.same(_design.cpm.properties_files, {
+        test.same(doc.cpm.properties_files, {
             'validate_doc_update.js': fs.readFileSync(
                 dir + '/validate_doc_update.js'
             ).toString(),
@@ -58,10 +59,10 @@ exports['loadPackage'] = function (test) {
                 dir + '/shows/testshow.js'
             ).toString()
         });
-        test.same(_design.templates, {
+        test.same(doc.templates, {
             'test.html': "module.exports = '<h1>\"\\'test\\'\"</h1>\\n';"
         });
-        test.same(_design.lib, {
+        test.same(doc.lib, {
             'module': 'exports.test = "test module";\n',
             'module2': 'exports.test = "test module 2";\n',
             'app': fs.readFileSync(
@@ -69,12 +70,12 @@ exports['loadPackage'] = function (test) {
             ).toString()
         });
         test.equals(
-            _design.validate_doc_update,
+            doc.validate_doc_update,
             'function (newDoc, oldDoc, userCtx) {\n' +
             '    // some validation function\n' +
             '}'
         );
-        test.same(_design.shows, {
+        test.same(doc.shows, {
             'testshow': 'function (doc, req) {\n' +
             '    // some show function\n' +
             '}'/*,
@@ -84,7 +85,7 @@ exports['loadPackage'] = function (test) {
             '    return fn.apply(this, args);\n' +
             '}'*/
         });
-        test.same(_design.views, {
+        test.same(doc.views, {
             'testview': {
                 map: 'function (doc) {\n' +
                 '        emit(doc._id, doc);\n' +
@@ -97,15 +98,15 @@ exports['loadPackage'] = function (test) {
              }
         });
         // test that the functions have been stringified
-        test.equals(typeof _design.views.testview.map, 'string');
-        test.equals(typeof _design.views.testview2.map, 'string');
-        test.same(_design._attachments, {
-            'static/folder/file1': static_dir + '/folder/file1',
-            'static/file2': static_dir + '/file2',
-            'static/file3': static_dir + '/file3'
+        test.equals(typeof doc.views.testview.map, 'string');
+        test.equals(typeof doc.views.testview2.map, 'string');
+        test.same(doc._attachments, {
+            'static/folder/file1': 'static/folder/file1',
+            'static/file2': 'static/file2',
+            'static/file3': 'static/file3'
         });
-        test.equals(_design.language, 'javascript');
-        test.same(Object.keys(_design).sort(), [
+        test.equals(doc.language, 'javascript');
+        test.same(Object.keys(doc).sort(), [
             'language',
             'package',
             'templates',
@@ -123,12 +124,13 @@ exports['loadPackage'] = function (test) {
 exports['loadApp'] = function (test) {
     var file = __dirname + '/fixtures/testpackage';
 
-    packages.loadPackage(file, function (err, pkg, _design) {
+    packages.loadLocal(file, function (err, doc) {
         if (err) throw err;
         var pkgs = {};
-        pkgs[pkg.name] = _design;
+        var pkg = doc.package;
+        pkgs[pkg.name] = doc;
         packages.loadApp(pkgs, pkg.name, pkg.app);
-        test.same(_design.shows, {
+        test.same(doc.shows, {
             'testshow': 'function (doc, req) {\n' +
             '    // some show function\n' +
             '}',
@@ -138,28 +140,28 @@ exports['loadApp'] = function (test) {
             '    return fn.apply(this, args);\n' +
             '}'
         });
-        test.same(_design.lists, {
+        test.same(doc.lists, {
             'applist': 'function () {\n' +
             '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../lib/app")["lists"]["applist"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
-        test.same(_design.updates, {
+        test.same(doc.updates, {
             'appupdate': 'function () {\n' +
             '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../lib/app")["updates"]["appupdate"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
-        test.same(_design.rewrites, [
+        test.same(doc.rewrites, [
             {from: '/show/:id', to: '_show/appshow/:id'},
             {from: '/list', to: '_list/appshow/testview'}
         ]);
         // ensure that the array keeps its type, and doesn't change to an
         // object with the index numbers as properties:
         // {"0": ..., "1": ...} etc
-        test.ok(_design.rewrites instanceof Array);
+        test.ok(doc.rewrites instanceof Array);
         test.done();
     });
 };
@@ -167,40 +169,41 @@ exports['loadApp'] = function (test) {
 exports['loadApp - app module only'] = function (test) {
     var file = __dirname + '/fixtures/appname';
 
-    packages.loadPackage(file, function (err, pkg, _design) {
+    packages.loadLocal(file, function (err, doc) {
         if (err) throw err;
         var pkgs = {};
-        pkgs[pkg.name] = _design;
+        var pkg = doc.package;
+        pkgs[pkg.name] = doc;
         packages.loadApp(pkgs, pkg.name, pkg.app);
-        test.same(_design.shows, {
+        test.same(doc.shows, {
             'appshow': 'function () {\n' +
             '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../app")["shows"]["appshow"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
-        test.same(_design.lists, {
+        test.same(doc.lists, {
             'applist': 'function () {\n' +
             '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../app")["lists"]["applist"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
-        test.same(_design.updates, {
+        test.same(doc.updates, {
             'appupdate': 'function () {\n' +
             '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("../app")["updates"]["appupdate"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         });
-        test.equals(_design.validate_doc_update,
+        test.equals(doc.validate_doc_update,
             'function () {\n' +
             '    var args = Array.prototype.slice.call(arguments);\n' +
             '    var fn = require("app")["validate_doc_update"];\n' +
             '    return fn.apply(this, args);\n' +
             '}'
         );
-        test.same(_design.rewrites, [
+        test.same(doc.rewrites, [
             {from: '/show/:id', to: '_show/appshow/:id'},
             {from: '/list', to: '_list/appshow/testview'}
         ]);
@@ -263,8 +266,11 @@ exports['clone'] = function (test) {
     var ins = {
         hostname: 'hostname',
         port: 5984,
-        db: 'db'
+        db: 'db',
+        doc: '_design/clone_test'
     };
+    var loc = 'http://hostname:5984/db/_design/clone_test';
+    var settings = {repositories: {}, instances: {}};
 
     var dir = __dirname + '/fixtures/clone_test';
 
@@ -287,7 +293,7 @@ exports['clone'] = function (test) {
     var rm = child_process.spawn('rm', ['-rf', dir]);
     rm.on('error', function (err) { throw err; });
     rm.on('exit', function (code) {
-        packages.clone(ins, pkg._id, dir, function (err) {
+        packages.clone(settings, loc, dir, function (err) {
             if (err) {
                 throw err;
                 return test.done();
@@ -420,5 +426,17 @@ exports['validate package.json'] = function (test) {
     test.ok(fail({}));
     test.ok(fail({name: 'pkgname'}));
     test.ok(fail({name: 'pkgname', version: '0.0.1'}));
+    test.done();
+};
+
+exports.locationType = function (test) {
+    test.equals(packages.locationType('http://hostname:port/path'), 'url');
+    test.equals(packages.locationType('https://hostname:port/path'), 'url');
+    test.equals(packages.locationType('http://user:pass@hostname/path'), 'url');
+    test.equals(packages.locationType('/home/user/package'), 'file');
+    test.equals(packages.locationType('./package'), 'file');
+    test.equals(packages.locationType('.'), 'file');
+    test.equals(packages.locationType('package'), 'repository');
+    test.equals(packages.locationType('package@0.0.1'), 'repository');
     test.done();
 };

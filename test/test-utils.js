@@ -151,14 +151,3 @@ exports.evalSandboxed = function (test) {
     test.same(utils.evalSandboxed("{a: {b: 123}}"), {a: {b: 123}});
     test.done();
 };
-
-exports.locationType = function (test) {
-    test.equals(utils.locationType('http://hostname:port/path'), 'url');
-    test.equals(utils.locationType('https://hostname:port/path'), 'url');
-    test.equals(utils.locationType('http://user:pass@hostname/path'), 'url');
-    test.equals(utils.locationType('/home/user/package'), 'file');
-    test.equals(utils.locationType('./package'), 'file');
-    test.equals(utils.locationType('package'), 'repository');
-    test.equals(utils.locationType('package@0.0.1'), 'repository');
-    test.done();
-};
