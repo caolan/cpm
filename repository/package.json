@@ -2,9 +2,10 @@
     "name": "repository",
     "version": "0.0.1",
     "description": "package repository",
-    "app": "app",
+    "app": "lib/app",
     "paths": {
-        "modules": "app.js",
-        "properties": "views"
+        "modules": ["lib", "deps"],
+        "properties": "views",
+        "templates": "templates"
     }
 }
