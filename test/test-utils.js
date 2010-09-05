@@ -1,4 +1,8 @@
-var utils = require('../lib/utils');
+var utils = require('../lib/utils'),
+    path = require('path'),
+    fs = require('fs'),
+    child_process = require('child_process');
+
 
 exports['setPropertyPath'] = function (test) {
     var obj = {test: 'test'};
@@ -138,7 +142,7 @@ exports['stringifyFunctions'] = function (test) {
     test.done();
 };
 
-exports.evalSandboxed = function (test) {
+exports['evalSandboxed'] = function (test) {
     test.expect(5);
     var obj = {test: 'test'};
     try { utils.evalSandboxed("require('sys').puts('fail!')"); }
@@ -149,5 +153,71 @@ exports.evalSandboxed = function (test) {
     catch (e) { test.ok(e, 'should throw an error'); }
     test.equals(obj.test, 'test');
     test.same(utils.evalSandboxed("{a: {b: 123}}"), {a: {b: 123}});
+    test.done();
+};
+
+exports['padRight'] = function (test) {
+    // pad strings below min length
+    test.equals(utils.padRight('test', 20), 'test                ');
+    // don't pad strings equals to min length
+    test.equals(utils.padRight('1234567890', 10), '1234567890');
+    // don't shorten strings above min length
+    test.equals(utils.padRight('123456789012345', 10), '123456789012345');
+    test.done();
+};
+
+exports['ensureDir - new dirs'] = function (test) {
+    test.expect(1);
+    var p = __dirname + '/fixtures/ensure_dir/some/path';
+    // remove any old test data
+    var dir = __dirname + '/fixtures/ensure_dir';
+    var rm = child_process.spawn('rm', ['-rf', dir]);
+    rm.on('error', function (err) { throw err; });
+    rm.on('exit', function (code) {
+        utils.ensureDir(p, function (err) {
+            if (err) throw err;
+            path.exists(p, function (exists) {
+                test.ok(exists);
+                test.done();
+            });
+        });
+    });
+};
+
+exports['ensureDir - existing dir'] = function (test) {
+    test.expect(1);
+    var p = __dirname + '/fixtures/testpackage'
+    fs.readdir(p, function (err, files) {
+        utils.ensureDir(p, function (err) {
+            if (err) throw err;
+            fs.readdir(p, function (err, new_files) {
+                // test the contents of the directory are unchanged
+                test.same(files, new_files);
+                test.done();
+            });
+        });
+    });
+};
+
+exports['cp'] = function (test) {
+    var from = __dirname + '/fixtures/cp_file';
+    var to = __dirname + '/fixtures/cp_file2';
+    utils.cp(from, to, function (err) {
+        if (err) throw err;
+        fs.readFile(to, function (err, content) {
+            if (err) throw err;
+            // TODO: sometimes the file is not written when this callback fires!
+            // see notes in lib/utils.js
+            test.equals(content.toString(), 'test content\n');
+            test.done();
+        });
+    });
+};
+
+exports['abspath'] = function (test) {
+    test.equals(utils.abspath('/some/path'), '/some/path');
+    test.equals(utils.abspath('some/path'), process.cwd() + '/some/path');
+    test.equals(utils.abspath('some/path', '/cwd'), '/cwd/some/path');
+    test.equals(utils.abspath('/some/path', '/cwd'), '/some/path');
     test.done();
 };
