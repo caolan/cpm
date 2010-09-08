@@ -3,14 +3,16 @@
     "description": "test package",
     "version": "0.0.1",
     "app": "lib/app",
-    "dependencies": [
-        "testlib1",
-        "testlib2"
-    ],
     "paths": {
         "attachments": "static",
-        "templates": ["templates"],
+        "templates": [
+            "templates"
+        ],
         "modules": "lib",
-        "properties": ["validate_doc_update.js", "shows", "views"]
+        "properties": [
+            "validate_doc_update.js",
+            "shows",
+            "views"
+        ]
     }
 }
