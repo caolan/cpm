@@ -1,0 +1,10 @@
+{
+    "name": "dep_test_lib",
+    "description": "Dependency test lib",
+    "version": "0.0.3",
+    "paths": {
+        "modules": [
+            "lib"
+        ]
+    }
+}
