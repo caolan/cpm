@@ -12,6 +12,8 @@ var db = require('../lib/transports/db'),
     child_process = require('child_process');
 
 
+var ins = 'http://localhost:5984/cpm_test_db';
+var repo_ins = 'http://localhost:5984/cpm_test_repository';
 var expected = require(__dirname + '/fixtures/testpackage_loaded');
 
 var check_pkg = function(pkg, test) {
@@ -39,18 +41,13 @@ var check_pkg = function(pkg, test) {
     test.same(pkg.rewrites.sort(), expected.rewrites.sort());
 };
 
-var repo_ins = {
-    hostname: 'localhost',
-    port: 5984,
-    db: 'cpm_test_repository'
-};
 
 var clear_test_db = function (callback) {
     // remove any old test data
-    couchdb.delete(ins, '', null, function (err) {
+    couchdb(ins).delete('', null, function (err) {
         if (err && err.message !== 'missing') throw err;
 
-        couchdb.ensureDB(ins, function (err) {
+        couchdb(ins).ensureDB(function (err) {
             if (err) throw err;
             callback();
         });
@@ -67,10 +64,10 @@ var delete_test_files = function (p, callback) {
 
 var reset_repository = function (callback) {
     // remove any old test data
-    couchdb.delete(ins, '', null, function (err) {
+    couchdb(ins).delete('', null, function (err) {
         if (err && err.message !== 'missing') return callback(err);
 
-        couchdb.ensureDB(ins, function (err) {
+        couchdb(ins).ensureDB(function (err) {
             if (err) return callback(err);
 
             var p = __dirname + '/../repository';
@@ -88,20 +85,8 @@ var reset_repository = function (callback) {
 
 var settings = {
     default_repository: 'default',
-    repositories: {
-        'default': {
-            hostname: 'localhost',
-            port: 5984,
-            db: 'cpm_test_repository'
-        }
-    },
+    repositories: {'default': repo_ins},
     instances: {}
-};
-
-var ins = {
-    hostname: 'localhost',
-    port: 5984,
-    db: 'cpm_test_db'
 };
 
 var diff_paths = function (a, b, test, callback) {
@@ -111,6 +96,7 @@ var diff_paths = function (a, b, test, callback) {
         callback();
     });
 };
+
 
 // push
 exports['filesystem.getPackage -> db.putPackage'] = function (test) {
@@ -123,7 +109,7 @@ exports['filesystem.getPackage -> db.putPackage'] = function (test) {
 
             // put package to cpm_test_db
             db.putPackage(settings, loc, pkg, function (err) {
-                couchdb.get(ins, '_design/testpackage', function (err, pkg) {
+                couchdb(ins).get('_design/testpackage', function (err, pkg) {
                     if (err) throw err;
                     delete pkg._id;
                     delete pkg._rev;
@@ -171,7 +157,7 @@ exports['filesystem.getPackage -> repository.putPackage'] = function (test) {
 
             // put package to cpm_test_db
             repository.putPackage(settings, loc, pkg, function (err) {
-                couchdb.get(repo_ins, id, function (err, pkg) {
+                couchdb(repo_ins).get(id, function (err, pkg) {
                     if (err) throw err;
                     test.equals(pkg.package.name, 'dep_test_lib');
                     test.done();
@@ -218,11 +204,11 @@ exports['filesystem.getPackageFull -> db.putPackage'] = function (test) {
             function (err) {
                 if (err) throw err;
 
-                couchdb.get(ins, app_id, function (err, pkg) {
+                couchdb(ins).get(app_id, function (err, pkg) {
                     test.equals(err, null);
                     test.equals(pkg.package.name, 'dep_test');
 
-                    couchdb.get(ins, lib_id, function (err, pkg) {
+                    couchdb(ins).get(lib_id, function (err, pkg) {
                         test.equals(err, null);
                         test.equals(pkg.package.name, 'dep_test_lib');
                         test.done();
@@ -262,7 +248,7 @@ exports['repository.deletePackage'] = function (test) {
     repository.deletePackage(settings, loc, function (err) {
         if (err) throw err;
         var p = 'http://localhost:5984/cpm_test_repository/dep_test_lib-0.0.3';
-        couchdb.exists(repo_ins, p, function (err, exists) {
+        couchdb(repo_ins).exists(p, function (err, exists) {
             if (err) throw err;
             test.equals(exists, false);
             test.done();
@@ -275,7 +261,7 @@ exports['db.deletePackage'] = function (test) {
     var loc = 'http://localhost:5984/cpm_test_db/_design/dep_test';
     db.deletePackage(settings, loc, function (err) {
         if (err) throw err;
-        couchdb.exists(ins, '_design/dep_test', function (err, exists) {
+        couchdb(ins).exists('_design/dep_test', function (err, exists) {
             if (err) throw err;
             test.equals(exists, false);
             test.done();
