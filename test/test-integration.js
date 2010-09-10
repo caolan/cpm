@@ -12,8 +12,8 @@ var db = require('../lib/transports/db'),
     child_process = require('child_process');
 
 
-var ins = 'http://localhost:5984/cpm_test_db';
-var repo_ins = 'http://localhost:5984/cpm_test_repository';
+var ins = 'http://admin:password@localhost:5984/cpm_test_db';
+var repo_ins = 'http://admin:password@localhost:5984/cpm_test_repository';
 var expected = require(__dirname + '/fixtures/testpackage_loaded');
 
 var check_pkg = function(pkg, test) {
@@ -64,19 +64,18 @@ var delete_test_files = function (p, callback) {
 
 var reset_repository = function (callback) {
     // remove any old test data
-    couchdb(ins).delete('', null, function (err) {
+    couchdb(repo_ins).delete('', null, function (err) {
         if (err && err.message !== 'missing') return callback(err);
 
-        couchdb(ins).ensureDB(function (err) {
+        couchdb(repo_ins).ensureDB(function (err) {
             if (err) return callback(err);
 
             var p = __dirname + '/../repository';
-            var loc = 'http://localhost:5984/cpm_test_repository';
             filesystem.getPackage(settings, p, function (err, pkg) {
                 if (err) return callback(err);
 
-                // put package to cpm_test_db
-                db.putPackage(settings, loc, pkg, callback);
+                // put package to cpm_test_repository
+                db.putPackage(settings, repo_ins, pkg, callback);
 
             });
         });
@@ -102,13 +101,14 @@ var diff_paths = function (a, b, test, callback) {
 exports['filesystem.getPackage -> db.putPackage'] = function (test) {
     clear_test_db(function () {
         var p = __dirname + '/fixtures/testpackage';
-        var loc = 'http://localhost:5984/cpm_test_db';
 
         filesystem.getPackage(settings, p, function (err, pkg) {
             if (err) throw err;
 
             // put package to cpm_test_db
-            db.putPackage(settings, loc, pkg, function (err) {
+            db.putPackage(settings, ins, pkg, function (err) {
+                if (err) throw err;
+
                 couchdb(ins).get('_design/testpackage', function (err, pkg) {
                     if (err) throw err;
                     delete pkg._id;
@@ -126,7 +126,7 @@ exports['filesystem.getPackage -> db.putPackage'] = function (test) {
 exports['db.getPackage -> filesystem.putPackage'] = function (test) {
     var orig = __dirname + '/fixtures/testpackage';
     var p = __dirname + '/fixtures/cpm_test_db_clone';
-    var loc = 'http://localhost:5984/cpm_test_db/_design/testpackage';
+    var loc = ins + '/_design/testpackage';
 
     db.getPackage(settings, loc, function (err, pkg) {
         if (err) throw err;
@@ -150,13 +150,15 @@ exports['filesystem.getPackage -> repository.putPackage'] = function (test) {
         var id = 'dep_test_lib-0.0.3';
 
         var p = __dirname + '/fixtures/dep_test_lib';
-        var loc = 'http://localhost:5984/cpm_test_repository/' + id;
+        var loc = repo_ins + '/' + id;
 
         filesystem.getPackage(settings, p, function (err, pkg) {
             if (err) throw err;
 
             // put package to cpm_test_db
             repository.putPackage(settings, loc, pkg, function (err) {
+                if (err) throw err;
+
                 couchdb(repo_ins).get(id, function (err, pkg) {
                     if (err) throw err;
                     test.equals(pkg.package.name, 'dep_test_lib');
@@ -191,7 +193,6 @@ exports['repository.getPackage -> filesystem.putPackage'] = function (test) {
 exports['filesystem.getPackageFull -> db.putPackage'] = function (test) {
     clear_test_db(function () {
         var p = __dirname + '/fixtures/dep_test';
-        var loc = 'http://localhost:5984/cpm_test_db';
         var lib_id = '_design/dep_test_lib';
         var app_id = '_design/dep_test';
 
@@ -199,7 +200,7 @@ exports['filesystem.getPackageFull -> db.putPackage'] = function (test) {
             if (err) throw err;
 
             async.forEach(Object.keys(pkgs), function (k, cb) {
-                db.putPackage(settings, loc, pkgs[k], cb);
+                db.putPackage(settings, ins, pkgs[k], cb);
             },
             function (err) {
                 if (err) throw err;
@@ -231,8 +232,7 @@ exports['repository.list'] = function (test) {
     });
 };
 exports['db.list'] = function (test) {
-    var loc = 'http://localhost:5984/cpm_test_db';
-    db.list(settings, loc, function (err, pkgs) {
+    db.list(settings, ins, function (err, pkgs) {
         if (err) throw err;
         test.same(pkgs, {
             'dep_test_lib': ['0.0.3'],
@@ -247,7 +247,7 @@ exports['repository.deletePackage'] = function (test) {
     var loc = 'dep_test_lib@0.0.3';
     repository.deletePackage(settings, loc, function (err) {
         if (err) throw err;
-        var p = 'http://localhost:5984/cpm_test_repository/dep_test_lib-0.0.3';
+        var p = repo_ins + '/dep_test_lib-0.0.3';
         couchdb(repo_ins).exists(p, function (err, exists) {
             if (err) throw err;
             test.equals(exists, false);
@@ -258,7 +258,7 @@ exports['repository.deletePackage'] = function (test) {
 
 // delete
 exports['db.deletePackage'] = function (test) {
-    var loc = 'http://localhost:5984/cpm_test_db/_design/dep_test';
+    var loc = ins + '/_design/dep_test';
     db.deletePackage(settings, loc, function (err) {
         if (err) throw err;
         couchdb(ins).exists('_design/dep_test', function (err, exists) {
