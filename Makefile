@@ -3,6 +3,6 @@ all:
 	git submodule update
 
 test:
-	./scripts/test.js
+	node ./deps/nodeunit/lib/cli.js test
 
 .PHONY: all test
