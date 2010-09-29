@@ -1,4 +1,4 @@
-var utils = require('../lib/utils'),
+var util = require('../lib/util'),
     path = require('path'),
     fs = require('fs'),
     child_process = require('child_process');
@@ -6,9 +6,9 @@ var utils = require('../lib/utils'),
 
 exports['setPropertyPath'] = function (test) {
     var obj = {test: 'test'};
-    utils.setPropertyPath(obj, 'some/example/path.js', 'val');
+    util.setPropertyPath(obj, 'some/example/path.js', 'val');
     test.same(obj, {test: 'test', some: {example: {path: 'val'}}});
-    utils.setPropertyPath(obj, 'some/other/path.js', 'val2');
+    util.setPropertyPath(obj, 'some/other/path.js', 'val2');
     test.same(obj, {
         test: 'test',
         some: {
@@ -16,7 +16,7 @@ exports['setPropertyPath'] = function (test) {
             other: {path: 'val2'}
         }
     });
-    utils.setPropertyPath(obj, './test', 'test2');
+    util.setPropertyPath(obj, './test', 'test2');
     test.same(obj, {
         test: 'test2',
         some: {
@@ -35,16 +35,16 @@ exports['getPropertyPath'] = function (test) {
             other: {path: 'val2'}
         }
     };
-    test.equals(utils.getPropertyPath(obj, 'test'), 'test');
-    test.equals(utils.getPropertyPath(obj, 'some/example/path'), 'val');
-    test.same(utils.getPropertyPath(obj, 'some/other'), {path: 'val2'});
-    test.same(utils.getPropertyPath(obj, ''), obj);
+    test.equals(util.getPropertyPath(obj, 'test'), 'test');
+    test.equals(util.getPropertyPath(obj, 'some/example/path'), 'val');
+    test.same(util.getPropertyPath(obj, 'some/other'), {path: 'val2'});
+    test.same(util.getPropertyPath(obj, ''), obj);
     test.done();
 };
 
 exports['descendants'] = function (test) {
     var dir = __dirname + '/fixtures/descendants_test';
-    utils.descendants(dir, function (err, files) {
+    util.descendants(dir, function (err, files) {
         if(err) throw err;
         test.same(files.sort(), [
             dir + '/file1',
@@ -61,7 +61,7 @@ exports['descendants'] = function (test) {
 exports['readJSON'] = function (test) {
     test.expect(2);
     var p = __dirname + '/fixtures/valid_json';
-    utils.readJSON(p, function (err, settings) {
+    util.readJSON(p, function (err, settings) {
         test.ok(!err);
         test.same(settings, {one:1,two:2});
         test.done();
@@ -71,7 +71,7 @@ exports['readJSON'] = function (test) {
 exports['readJSON'] = function (test) {
     test.expect(1);
     var p = __dirname + '/fixtures/invalid_json';
-    utils.readJSON(p, function (err, settings) {
+    util.readJSON(p, function (err, settings) {
         test.ok(err, 'return JSON parsing errors');
         test.done();
     });
@@ -80,22 +80,22 @@ exports['readJSON'] = function (test) {
 exports['relpath'] = function (test) {
     var dir = '/some/test/path';
     test.equals(
-        utils.relpath('/some/test/path/some/file.ext', dir),
+        util.relpath('/some/test/path/some/file.ext', dir),
         'some/file.ext'
     );
     test.equals(
-        utils.relpath('/some/test/file.ext', dir),
+        util.relpath('/some/test/file.ext', dir),
         '../file.ext'
     );
     test.equals(
-        utils.relpath('some/test/file.ext', dir),
+        util.relpath('some/test/file.ext', dir),
         'some/test/file.ext'
     );
     test.equals(
-        utils.relpath('/some/dir/../test/path/file.ext', dir),
+        util.relpath('/some/dir/../test/path/file.ext', dir),
         'file.ext'
     );
-    test.equals(utils.relpath('file.ext', dir), 'file.ext');
+    test.equals(util.relpath('file.ext', dir), 'file.ext');
     test.done();
 };
 
@@ -116,7 +116,7 @@ exports['stringifyFunctions'] = function (test) {
         g: undefined,
         h: ['one', 'two', 3]
     }
-    var stringified = utils.stringifyFunctions(obj);
+    var stringified = util.stringifyFunctions(obj);
     test.same(
         stringified,
         {
@@ -145,24 +145,24 @@ exports['stringifyFunctions'] = function (test) {
 exports['evalSandboxed'] = function (test) {
     test.expect(5);
     var obj = {test: 'test'};
-    try { utils.evalSandboxed("require('sys').puts('fail!')"); }
+    try { util.evalSandboxed("require('sys').puts('fail!')"); }
     catch (e) { test.ok(e, 'should throw an error'); }
-    try { utils.evalSandboxed("process.env['HOME']")}
+    try { util.evalSandboxed("process.env['HOME']")}
     catch (e) { test.ok(e, 'should throw an error'); }
-    try { utils.evalSandboxed("obj.test = 'asdf'")}
+    try { util.evalSandboxed("obj.test = 'asdf'")}
     catch (e) { test.ok(e, 'should throw an error'); }
     test.equals(obj.test, 'test');
-    test.same(utils.evalSandboxed("{a: {b: 123}}"), {a: {b: 123}});
+    test.same(util.evalSandboxed("{a: {b: 123}}"), {a: {b: 123}});
     test.done();
 };
 
 exports['padRight'] = function (test) {
     // pad strings below min length
-    test.equals(utils.padRight('test', 20), 'test                ');
+    test.equals(util.padRight('test', 20), 'test                ');
     // don't pad strings equals to min length
-    test.equals(utils.padRight('1234567890', 10), '1234567890');
+    test.equals(util.padRight('1234567890', 10), '1234567890');
     // don't shorten strings above min length
-    test.equals(utils.padRight('123456789012345', 10), '123456789012345');
+    test.equals(util.padRight('123456789012345', 10), '123456789012345');
     test.done();
 };
 
@@ -174,7 +174,7 @@ exports['ensureDir - new dirs'] = function (test) {
     var rm = child_process.spawn('rm', ['-rf', dir]);
     rm.on('error', function (err) { throw err; });
     rm.on('exit', function (code) {
-        utils.ensureDir(p, function (err) {
+        util.ensureDir(p, function (err) {
             if (err) throw err;
             path.exists(p, function (exists) {
                 test.ok(exists);
@@ -188,7 +188,7 @@ exports['ensureDir - existing dir'] = function (test) {
     test.expect(1);
     var p = __dirname + '/fixtures/testpackage'
     fs.readdir(p, function (err, files) {
-        utils.ensureDir(p, function (err) {
+        util.ensureDir(p, function (err) {
             if (err) throw err;
             fs.readdir(p, function (err, new_files) {
                 // test the contents of the directory are unchanged
@@ -202,12 +202,12 @@ exports['ensureDir - existing dir'] = function (test) {
 exports['cp'] = function (test) {
     var from = __dirname + '/fixtures/cp_file';
     var to = __dirname + '/fixtures/cp_file2';
-    utils.cp(from, to, function (err) {
+    util.cp(from, to, function (err) {
         if (err) throw err;
         fs.readFile(to, function (err, content) {
             if (err) throw err;
             // TODO: sometimes the file is not written when this callback fires!
-            // see notes in lib/utils.js
+            // see notes in lib/util.js
             test.equals(content.toString(), 'test content\n');
             test.done();
         });
@@ -215,9 +215,9 @@ exports['cp'] = function (test) {
 };
 
 exports['abspath'] = function (test) {
-    test.equals(utils.abspath('/some/path'), '/some/path');
-    test.equals(utils.abspath('some/path'), process.cwd() + '/some/path');
-    test.equals(utils.abspath('some/path', '/cwd'), '/cwd/some/path');
-    test.equals(utils.abspath('/some/path', '/cwd'), '/some/path');
+    test.equals(util.abspath('/some/path'), '/some/path');
+    test.equals(util.abspath('some/path'), process.cwd() + '/some/path');
+    test.equals(util.abspath('some/path', '/cwd'), '/cwd/some/path');
+    test.equals(util.abspath('/some/path', '/cwd'), '/some/path');
     test.done();
 };

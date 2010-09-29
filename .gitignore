@@ -3,3 +3,5 @@ test/fixtures/testpackage_put/
 test/fixtures/cp_file2
 test/fixtures/cpm_test_db_clone/
 test/fixtures/cpm_test_repository_clone/
+dist
+stamp-build

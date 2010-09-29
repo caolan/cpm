@@ -1,5 +1,5 @@
 var settings = require('../lib/settings'),
-    utils = require('../lib/utils'),
+    util = require('../lib/util'),
     path = require('path');
 
 
@@ -16,13 +16,13 @@ exports['loadSettings with local .cpmrc'] = function (test) {
         });
     };
 
-    var _readJSON = utils.readJSON;
-    utils.readJSON = function (p, callback) {
+    var _readJSON = util.readJSON;
+    util.readJSON = function (p, callback) {
         test.equals(p, '/home/user/.cpmrc');
         process.nextTick(function () {
             callback(null, {a:1,b:2});
         });
-        utils.readJSON = function (p, callback) {
+        util.readJSON = function (p, callback) {
             test.equals(p, 'projectdir/.cpmrc');
             process.nextTick(function () {
                 callback(null, {b:3,c:4});
@@ -45,7 +45,7 @@ exports['loadSettings with local .cpmrc'] = function (test) {
             c:4
         });
         process.env['HOME'] = _home;
-        utils.readJSON = _readJSON;
+        util.readJSON = _readJSON;
         settings.validate = _validate;
         path.exists = _exists;
         test.done();
@@ -68,13 +68,13 @@ exports['loadSettings without local .cpmrc'] = function (test) {
         });
     };
 
-    var _readJSON = utils.readJSON;
-    utils.readJSON = function (p, callback) {
+    var _readJSON = util.readJSON;
+    util.readJSON = function (p, callback) {
         test.equals(p, '/home/user/.cpmrc');
         process.nextTick(function () {
             callback(null, {a:1,b:2});
         });
-        utils.readJSON = function (p, callback) {
+        util.readJSON = function (p, callback) {
             test.ok(false, 'should not be called for local .cpmrc');
             process.nextTick(function () {
                 callback(null, {b:3,c:4});
@@ -96,7 +96,7 @@ exports['loadSettings without local .cpmrc'] = function (test) {
             b:2
         });
         process.env['HOME'] = _home;
-        utils.readJSON = _readJSON;
+        util.readJSON = _readJSON;
         settings.validate = _validate;
         path.exists = _exists;
         test.done();
@@ -116,8 +116,8 @@ exports['loadSettings return errors from readJSON'] = function (test) {
         });
     };
 
-    var _readJSON = utils.readJSON;
-    utils.readJSON = function (p, callback) {
+    var _readJSON = util.readJSON;
+    util.readJSON = function (p, callback) {
         test.equals(p, '/home/user/.cpmrc');
         process.nextTick(function () {
             callback('error', null);
@@ -132,7 +132,7 @@ exports['loadSettings return errors from readJSON'] = function (test) {
     settings.loadSettings('projectdir', function (err, s) {
         test.equals(err, 'error');
         process.env['HOME'] = _home;
-        utils.readJSON = _readJSON;
+        util.readJSON = _readJSON;
         settings.validate = _validate;
         path.exists = _exists;
         test.done();
@@ -152,8 +152,8 @@ exports['loadSettings return errors from validate'] = function (test) {
         });
     };
 
-    var _readJSON = utils.readJSON;
-    utils.readJSON = function (p, callback) {
+    var _readJSON = util.readJSON;
+    util.readJSON = function (p, callback) {
         callback();
     };
 
@@ -165,7 +165,7 @@ exports['loadSettings return errors from validate'] = function (test) {
     settings.loadSettings('projectdir', function (err, s) {
         test.equals(err.message, 'validation error');
         process.env['HOME'] = _home;
-        utils.readJSON = _readJSON;
+        util.readJSON = _readJSON;
         settings.validate = _validate;
         path.exists = _exists;
         test.done();
