@@ -85,7 +85,8 @@ var reset_repository = function (callback) {
 var settings = {
     default_repository: 'default',
     repositories: {'default': repo_ins},
-    instances: {}
+    instances: {},
+    ignore: ['.*\.swp$']
 };
 
 var diff_paths = function (a, b, test, callback) {
