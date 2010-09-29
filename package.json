@@ -1,0 +1,16 @@
+{ "name": "cpm"
+, "description": "CouchDB Package Manager - a tool for the management of CouchApps and associated libraries"
+, "author": "Caolan McMahon"
+, "version": "0.0.1"
+, "repository" :
+  { "type" : "git"
+  , "url" : "http://github.com/caolan/cpm.git"
+  }
+, "bugs" : { "web" : "http://github.com/caolan/cpm/issues" }
+, "licenses" :
+  [ { "type" : "MIT"
+    , "url" : "http://github.com/caolan/cpm/raw/master/LICENSE"
+    }
+  ]
+ , "bin" : { "cpm" : "./lib/cli.js" }
+}
