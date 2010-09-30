@@ -44,10 +44,10 @@ exports.lists = {
 };
 
 exports.validate_doc_update = function (newDoc, savedDoc, userCtx) {
-    if (!newDoc._deleted) {
-        if (!newDoc.package) {
+    if (!newDoc._deleted && newDoc.package) {
+        /*if (!newDoc.package) {
             throw({forbidden: 'Packages must contain package metadata'});
-        }
+        }*/
         if(!newDoc.package.version) {
             throw({forbidden: 'Packages must have a version number'});
         }

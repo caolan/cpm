@@ -8,12 +8,15 @@ var db = require('../lib/transports/db'),
     filesystem = require('../lib/transports/filesystem'),
     repository = require('../lib/transports/repository'),
     couchdb = require('../lib/couchdb'),
+    logger = require('../lib/logger'),
     async = require('../deps/async'),
     child_process = require('child_process');
 
+logger.level = 'error';
 
 var ins = 'http://admin:password@localhost:5984/cpm_test_db';
 var repo_ins = 'http://admin:password@localhost:5984/cpm_test_repository';
+var repo_ins2 = 'http://admin:password@localhost:5984/cpm_test_repository2';
 var expected = require(__dirname + '/fixtures/testpackage_loaded');
 
 var check_pkg = function(pkg, test) {
@@ -62,7 +65,7 @@ var delete_test_files = function (p, callback) {
     });
 }
 
-var reset_repository = function (callback) {
+var reset_repository = function (repo_ins, callback) {
     // remove any old test data
     couchdb(repo_ins).delete('', null, function (err) {
         if (err && err.message !== 'missing') return callback(err);
@@ -83,8 +86,7 @@ var reset_repository = function (callback) {
 };
 
 var settings = {
-    default_repository: 'default',
-    repositories: {'default': repo_ins},
+    repositories: [repo_ins, repo_ins2],
     instances: {},
     ignore: ['.*\.swp$']
 };
@@ -145,19 +147,17 @@ exports['db.getPackage -> filesystem.putPackage'] = function (test) {
 
 // publish
 exports['filesystem.getPackage -> repository.putPackage'] = function (test) {
-    reset_repository(function (err) {
+    reset_repository(repo_ins, function (err) {
         if (err) throw err;
 
         var id = 'dep_test_lib-0.0.3';
 
         var p = __dirname + '/fixtures/dep_test_lib';
-        var loc = repo_ins + '/' + id;
 
         filesystem.getPackage(settings, p, function (err, pkg) {
             if (err) throw err;
 
-            // put package to cpm_test_db
-            repository.putPackage(settings, loc, pkg, function (err) {
+            repository.putPackage(settings, repo_ins, pkg, function (err) {
                 if (err) throw err;
 
                 couchdb(repo_ins).get(id, function (err, pkg) {
@@ -171,11 +171,40 @@ exports['filesystem.getPackage -> repository.putPackage'] = function (test) {
     });
 };
 
+// publish to repository 2
+exports['filesystem.getPackage -> repository.putPackage 2'] = function (test) {
+    reset_repository(repo_ins2, function (err) {
+        if (err) throw err;
+
+        var id = 'dep_test_lib-0.0.4';
+
+        var p = __dirname + '/fixtures/dep_test_lib';
+
+        filesystem.getPackage(settings, p, function (err, pkg) {
+            if (err) throw err;
+
+            pkg.package.version = '0.0.4';
+
+            repository.putPackage(settings, repo_ins2, pkg, function (err) {
+                if (err) throw err;
+
+                couchdb(repo_ins2).get(id, function (err, pkg) {
+                    if (err) throw err;
+                    test.equals(pkg.package.name, 'dep_test_lib');
+                    test.done();
+                });
+            });
+
+        });
+
+    });
+};
+
 // clone from repository
 exports['repository.getPackage -> filesystem.putPackage'] = function (test) {
     var orig = __dirname + '/fixtures/dep_test_lib';
     var p = __dirname + '/fixtures/cpm_test_repository_clone';
-    var loc = 'dep_test_lib';
+    var loc = 'dep_test_lib@0.0.3';
 
     repository.getPackage(settings, loc, function (err, pkg) {
         if (err) throw err;
@@ -223,6 +252,40 @@ exports['filesystem.getPackageFull -> db.putPackage'] = function (test) {
     });
 };
 
+// push with dependencies 2
+exports['filesystem.getPackageFull -> db.putPackage 2'] = function (test) {
+    clear_test_db(function () {
+        var p = __dirname + '/fixtures/dep_test2';
+        var lib_id = '_design/dep_test_lib';
+        var app_id = '_design/dep_test2';
+
+        filesystem.getPackageFull(settings, p, function (err, pkg, pkgs) {
+            if (err) throw err;
+
+            async.forEach(Object.keys(pkgs), function (k, cb) {
+                db.putPackage(settings, ins, pkgs[k], cb);
+            },
+            function (err) {
+                if (err) throw err;
+
+                couchdb(ins).get(app_id, function (err, pkg) {
+                    test.equals(err, null);
+                    test.equals(pkg.package.name, 'dep_test2');
+
+                    couchdb(ins).get(lib_id, function (err, pkg) {
+                        test.equals(err, null);
+                        test.equals(pkg.package.name, 'dep_test_lib');
+                        test.equals(pkg.package.version, '0.0.4');
+                        test.done();
+                    });
+
+                });
+            });
+
+        });
+    });
+};
+
 // list
 exports['repository.list'] = function (test) {
     var loc = '';
@@ -236,12 +299,13 @@ exports['db.list'] = function (test) {
     db.list(settings, ins, function (err, pkgs) {
         if (err) throw err;
         test.same(pkgs, {
-            'dep_test_lib': ['0.0.3'],
-            'dep_test': ['0.1.0']
+            'dep_test_lib': ['0.0.4'],
+            'dep_test2': ['0.1.0']
         });
         test.done();
     });
 };
+
 
 // unpublish
 exports['repository.deletePackage'] = function (test) {
@@ -257,12 +321,26 @@ exports['repository.deletePackage'] = function (test) {
     });
 };
 
+// unpublish 2
+exports['repository.deletePackage 2'] = function (test) {
+    var loc = 'dep_test_lib@0.0.4';
+    repository.deletePackage(settings, loc, function (err) {
+        if (err) throw err;
+        var p = repo_ins + '/dep_test_lib-0.0.4';
+        couchdb(repo_ins2).exists(p, function (err, exists) {
+            if (err) throw err;
+            test.equals(exists, false);
+            test.done();
+        });
+    });
+};
+
 // delete
 exports['db.deletePackage'] = function (test) {
-    var loc = ins + '/_design/dep_test';
+    var loc = ins + '/_design/dep_test2';
     db.deletePackage(settings, loc, function (err) {
         if (err) throw err;
-        couchdb(ins).exists('_design/dep_test', function (err, exists) {
+        couchdb(ins).exists('_design/dep_test2', function (err, exists) {
             if (err) throw err;
             test.equals(exists, false);
             test.done();

@@ -1,0 +1,12 @@
+{
+    "name": "dep_test2",
+    "description": "Dependency test package 2",
+    "version": "0.1.0",
+    "app": "lib/app",
+    "paths": {
+        "modules": ["lib"]
+    },
+    "dependencies": {
+        "dep_test_lib": ["0.0.4"]
+    }
+}
