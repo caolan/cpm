@@ -4,7 +4,7 @@ var filesystem = require('../lib/transports/filesystem'),
 
 exports['getPackage - no dependencies'] = function (test) {
     var p = __dirname + '/fixtures/testpackage';
-    var settings = {repositories: {}, instances: {}, ignore: ['.*\.swp$']};
+    var settings = {repositories: [], instances: {}, ignore: ['.*\.swp$']};
 
     filesystem.getPackage(settings, p, function (err, pkg) {
         if (err) throw err;
@@ -36,7 +36,7 @@ exports['getPackage - no dependencies'] = function (test) {
 
 exports['getMetadata'] = function (test) {
     var p = __dirname + '/fixtures/appname';
-    var settings = {repositories: {}, instances: {}, ignore: ['.*\.swp$']};
+    var settings = {repositories: [], instances: {}, ignore: ['.*\.swp$']};
 
     filesystem.getMetadata(settings, p, function (err, meta) {
         if (err) throw err;
@@ -57,7 +57,7 @@ exports['putPackage'] = function (test) {
     var pkg = require(__dirname + '/fixtures/testpackage_loaded');
     var from = __dirname + '/fixtures/testpackage';
     var to = __dirname + '/fixtures/testpackage_put';
-    var settings = {repositories: {}, instances: {}, ignore: ['.*\.swp$']};
+    var settings = {repositories: [], instances: {}, ignore: ['.*\.swp$']};
 
     // delete any previous test data
     var rm = child_process.spawn('rm', ['-rf', to]);

@@ -37,8 +37,8 @@ exports['loadSettings with local .cpmrc'] = function (test) {
 
     settings.loadSettings('projectdir', function (err, s) {
         test.same(s, {
-            cache: '/home/user/.cpm/cache',
-            repositories: {},
+            //cache: '/home/user/.cpm/cache',
+            repositories: [],
             instances: {},
             a:1,
             b:3,
@@ -89,8 +89,8 @@ exports['loadSettings without local .cpmrc'] = function (test) {
 
     settings.loadSettings('projectdir', function (err, s) {
         test.same(s, {
-            cache: '/home/user/.cpm/cache',
-            repositories: {},
+            //cache: '/home/user/.cpm/cache',
+            repositories: [],
             instances: {},
             a:1,
             b:2
@@ -174,22 +174,17 @@ exports['loadSettings return errors from validate'] = function (test) {
 
 exports['validate ok'] = function (test) {
     settings.validate({
-        cache: '/home/user/.cpm/cache',
-        default_repository: 'default',
-        repositories: {
-            'default': {
-                hostname: 'localhost',
-                port: 5984,
-                db: 'repository'
-            }
-        }
+        //cache: '/home/user/.cpm/cache',
+        repositories: [
+            'http://localhost:5984/repository'
+        ]
     });
     test.done();
 };
 
-exports['validate - empty'] = function (test) {
+/*exports['validate - empty'] = function (test) {
     test.expect(1);
     try       { settings.validate({}); }
     catch (e) { test.ok(e); }
     test.done();
-};
+};*/
