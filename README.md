@@ -246,3 +246,14 @@ __.cpmrc__
                                                       stopping on the first match.
         ]
     }
+
+Loaded dependencies will be uploaded as seperate design docs when pushed to a
+CouchDB database, and are also available at the loading stage. This means
+dependencies are available for generating exports from a commonjs module:
+
+    var mylib = require('../dependency_name/mylib');
+
+    exports.rewrites = mylib.generateURLs();
+
+In this way it's possible to break-up and share common libraries between your apps,
+and also load frameworks for building your app.
