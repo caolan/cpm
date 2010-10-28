@@ -159,7 +159,7 @@ This is _real_ JSON (for now), obey the rules!
     {
         "name": "app name",       <-- the name of your app
         "version": "0.0.1",       <-- the version of your app
-        "description": "testing"  <-- a description of your app
+        "description": "testing", <-- a description of your app
         "app": "lib/app",         <-- use the exported properties of this
                                       commonjs module for show / list functions
                                       etc. [optional]
