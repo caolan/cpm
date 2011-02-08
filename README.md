@@ -1,5 +1,7 @@
 # CPM
 
+__WARNING: CPM is no longer supported, please see [kansojs.org](http://kansojs.org)__
+
 A [couchapp](http://couchapp.org) management tool built with
 [node.js](http://nodejs.org)
 
